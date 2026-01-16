@@ -107,14 +107,28 @@ class StockAnalyser():
             
         )
 
+    @agent
+    def technical_analyst(self) -> Agent:
+        return Agent(
+            config=self.agents_config['technical_analyst'], # type: ignore[index]
+            tools=[self.finnhub_api_tools],
+            verbose=True
+        )
+
+    @task
+    def technical_analyst_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['technical_analyst_task'], # type: ignore[index]
+        )
+
     @crew
     def crew(self) -> Crew:
         """Creates the StockAnnalyzer crew"""
         # To learn how to add knowledge sources to your crew, check out the documentation:
         # https://crewai.com/concepts/knowledge#what-is-knowledge
         return Crew(
-            agents=[self.researcher_anthropic(), self.reporter_anthropic(), self.researcher_openai(), self.reporter_openai()],
-            tasks=[self.researcher_anthropic_task(), self.reporter_anthropic_task(), self.researcher_openai_task(), self.reporter_openai_task()],
+            agents=[self.researcher_anthropic(), self.reporter_anthropic(), self.researcher_openai(), self.reporter_openai(), self.technical_analyst()],
+            tasks=[self.researcher_anthropic_task(), self.reporter_anthropic_task(), self.researcher_openai_task(), self.reporter_openai_task(), self.technical_analyst_task()],
             process=Process.sequential,
             verbose=True,
             tracing=True,

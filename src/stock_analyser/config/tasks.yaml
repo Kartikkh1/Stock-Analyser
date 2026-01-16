@@ -75,3 +75,22 @@ reporter_openai_task:
     - researcher_openai_task
   markdown: true
   agent: reporter_openai
+
+technical_analyst_task:
+  description: >
+    Perform a comprehensive technical analysis for the ticker symbol {name}.
+    Utilize Finnhub data to retrieve historical stock prices and calculate
+    key technical indicators such as Moving Averages (SMA, EMA), Relative Strength Index (RSI),
+    Moving Average Convergence Divergence (MACD), and Bollinger Bands.
+    Interpret these indicators to identify trends, momentum, and potential buy/sell signals.
+    Focus on providing actionable insights based on the technical patterns observed.
+    The current year is {current_year}.
+  expected_output: >
+    A detailed technical analysis report for {name}, including:
+    - Current price and recent price movements.
+    - Calculated values and interpretations for SMA, EMA, RSI, MACD, and Bollinger Bands.
+    - Identification of key support and resistance levels.
+    - Potential bullish or bearish signals.
+    - A summary of overall technical outlook and recommendations.
+    Formatted as markdown without '```'
+  agent: technical_analyst
