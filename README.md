@@ -1,6 +1,6 @@
-# StockAnnalyzer Crew
+# StockAnalyser Crew
 
-Welcome to the StockAnnalyzer Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+Welcome to the StockAnalyser Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
 
 ## Installation
 
@@ -22,10 +22,10 @@ crewai install
 
 **Add your `OPENAI_API_KEY` into the `.env` file**
 
-- Modify `src/stock_annalyzer/config/agents.yaml` to define your agents
-- Modify `src/stock_annalyzer/config/tasks.yaml` to define your tasks
-- Modify `src/stock_annalyzer/crew.py` to add your own logic, tools and specific args
-- Modify `src/stock_annalyzer/main.py` to add custom inputs for your agents and tasks
+- Modify `src/stock_analyser/config/agents.yaml` to define your agents
+- Modify `src/stock_analyser/config/tasks.yaml` to define your tasks
+- Modify `src/stock_analyser/crew.py` to add your own logic, tools and specific args
+- Modify `src/stock_analyser/main.py` to add custom inputs for your agents and tasks
 
 ## Running the Project
 
@@ -35,17 +35,17 @@ To kickstart your crew of AI agents and begin task execution, run this from the 
 $ crewai run
 ```
 
-This command initializes the stock_annalyzer Crew, assembling the agents and assigning them tasks as defined in your configuration.
+This command initializes the stock_analyser Crew, assembling the agents and assigning them tasks as defined in your configuration.
 
 This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
 
 ## Understanding Your Crew
 
-The stock_annalyzer Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
+The stock_analyser Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
 
 ## Support
 
-For support, questions, or feedback regarding the StockAnnalyzer Crew or crewAI.
+For support, questions, or feedback regarding the StockAnalyser Crew or crewAI.
 - Visit our [documentation](https://docs.crewai.com)
 - Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
 - [Join our Discord](https://discord.com/invite/X4JWnZnxPb)

@@ -1,5 +1,5 @@
 [project]
-name = "stock_annalyzer"
+name = "stock_analyser"
 version = "0.1.0"
 description = "stock_annalyzer using crewAI"
 authors = [{ name = "Your Name", email = "you@example.com" }]
@@ -9,12 +9,12 @@ dependencies = [
 ]
 
 [project.scripts]
-stock_annalyzer = "stock_annalyzer.main:run"
-run_crew = "stock_annalyzer.main:run"
-train = "stock_annalyzer.main:train"
-replay = "stock_annalyzer.main:replay"
-test = "stock_annalyzer.main:test"
-run_with_trigger = "stock_annalyzer.main:run_with_trigger"
+stock_analyser = "stock_analyser.main:run"
+run_crew = "stock_analyser.main:run"
+train = "stock_analyser.main:train"
+replay = "stock_analyser.main:replay"
+test = "stock_analyser.main:test"
+run_with_trigger = "stock_analyser.main:run_with_trigger"
 
 [build-system]
 requires = ["hatchling"]

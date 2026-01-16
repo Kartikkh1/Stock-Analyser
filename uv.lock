@@ -3232,7 +3232,7 @@ wheels = [
 ]
 
 [[package]]
-name = "stock-annalyzer"
+name = "stock-analyser"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
