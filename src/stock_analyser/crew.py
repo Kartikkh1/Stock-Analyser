@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from crewai_tools import SerperDevTool
+from .tools.finnhub_tools import FinnhubAPITools
 
 @CrewBase
 class StockAnalyser():
@@ -14,12 +15,12 @@ class StockAnalyser():
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
     serper_dev_tool = SerperDevTool()
-
+    finnhub_api_tools = FinnhubAPITools() # API key will be read from FINNHUB_API_KEY environment variable
     @agent
     def researcher_anthropic(self) -> Agent:
         return Agent(
             config=self.agents_config['researcher_anthropic'], # type: ignore[index]
-            tools=[self.serper_dev_tool],
+            tools=[self.serper_dev_tool, self.finnhub_api_tools],
             verbose=True
         )
 
@@ -27,7 +28,7 @@ class StockAnalyser():
     def reporter_anthropic(self) -> Agent:
         return Agent(
             config=self.agents_config['reporter_anthropic'], # type: ignore[index]
-            tools=[self.serper_dev_tool],
+            tools=[self.serper_dev_tool, self.finnhub_api_tools],
             verbose=True
         )
 
@@ -35,7 +36,7 @@ class StockAnalyser():
     def researcher_gemini(self) -> Agent:
         return Agent(
             config=self.agents_config['researcher_gemini'], # type: ignore[index]
-            tools=[self.serper_dev_tool],
+            tools=[self.serper_dev_tool, self.finnhub_api_tools],
             verbose=True
         )
 
@@ -43,7 +44,7 @@ class StockAnalyser():
     def reporter_gemini(self) -> Agent:
         return Agent(
             config=self.agents_config['reporter_gemini'], # type: ignore[index]
-            tools=[self.serper_dev_tool],
+            tools=[self.serper_dev_tool, self.finnhub_api_tools],
             verbose=True
         )
 
@@ -51,7 +52,7 @@ class StockAnalyser():
     def researcher_openai(self) -> Agent:
         return Agent(
             config=self.agents_config['researcher_openai'], # type: ignore[index]
-            tools=[self.serper_dev_tool],
+            tools=[self.serper_dev_tool, self.finnhub_api_tools],
             verbose=True
         )
 
@@ -59,7 +60,7 @@ class StockAnalyser():
     def reporter_openai(self) -> Agent:
         return Agent(
             config=self.agents_config['reporter_openai'], # type: ignore[index]
-            tools=[self.serper_dev_tool],
+            tools=[self.serper_dev_tool, self.finnhub_api_tools],
             verbose=True
         )
 
