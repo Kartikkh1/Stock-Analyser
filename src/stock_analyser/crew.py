@@ -4,6 +4,7 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from crewai_tools import SerperDevTool
 from .tools.finnhub_tools import FinnhubAPITools
+from .tools.visualization_tools import VisualizationTools
 
 @CrewBase
 class StockAnalyser():
@@ -16,6 +17,7 @@ class StockAnalyser():
     tasks_config = 'config/tasks.yaml'
     serper_dev_tool = SerperDevTool()
     finnhub_api_tools = FinnhubAPITools() # API key will be read from FINNHUB_API_KEY environment variable
+    visualization_tools = VisualizationTools()
 
     def __init__(self, selected_llm_type: str):
         self.selected_llm_type = selected_llm_type
@@ -34,7 +36,7 @@ class StockAnalyser():
         return Agent(
             config=self.agents_config['reporter'], # type: ignore[index]
             llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
-            tools=[self.serper_dev_tool, self.finnhub_api_tools],
+            tools=[self.serper_dev_tool, self.finnhub_api_tools, self.visualization_tools],
             verbose=True
         )
 

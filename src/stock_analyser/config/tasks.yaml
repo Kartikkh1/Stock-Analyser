@@ -14,6 +14,8 @@ reporter_task:
     Make sure the report is detailed and contains any and all relevant information.
   expected_output: >
     A fully fledged report with the main topics, each with a full section of information.
+    The report MUST include relevant charts and graphs (e.g., historical prices, MACD, RSI) generated using the visualization tools to illustrate technical analysis findings.
+    Charts should be embedded as base64 encoded images within the markdown report.
     Formatted as markdown without '```'
   context:
     - researcher_task

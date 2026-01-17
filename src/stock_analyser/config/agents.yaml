@@ -19,6 +19,10 @@ reporter:
   backstory: >
       You're a seasoned stock reporter with a knack for creating detailed reports based on data analysis and research findings. Known for your ability to create clear and concise reports
       information and present it in a clear and concise manner.
+  tools:
+    - serper_dev_tool
+    - finnhub_tools
+    - visualization_tools
 
 #######################################################################################################################
 # Technical Analyst Agent
