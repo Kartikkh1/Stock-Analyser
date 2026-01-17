@@ -1,8 +1,8 @@
 import os
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 import finnhub
 from finnhub import Client, exceptions
-from ..utils.logger import logger
+from stock_analyser.utils.logger import logger
 
 class FinnhubAPITools(BaseTool):
     name: str = "Finnhub API Tools"

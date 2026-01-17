@@ -17,7 +17,7 @@ def run():
     logger.info("Starting Stock Analyser application.")
 
     inputs = {
-        'name': 'GOOG', 
+        'name': 'MSTR', 
         'current_year': str(datetime.now().year)
     }
 

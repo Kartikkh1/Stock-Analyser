@@ -2,7 +2,7 @@
 name = "stock_analyser"
 version = "0.1.0"
 description = "A stock analysis system"
-authors = [{ name = "Kartik Khandelwal", email = "xxxx" }]
+authors = [{ name = "Kartik Khandelwal", email = "kartik.khandelwal@example.com" }]
 requires-python = ">=3.10,<3.14"
 dependencies = [
     "finnhub-python",
@@ -12,6 +12,8 @@ dependencies = [
     "scikit-learn",
     "python-dotenv",
     "TA-Lib",
+    "crewai",
+    "crewai_tools",
 ]
 
 [project.scripts]

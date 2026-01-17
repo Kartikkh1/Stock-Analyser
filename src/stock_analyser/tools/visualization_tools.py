@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import io
 import base64
-from ...utils.logger import logger
+from stock_analyser.utils.logger import logger
 
 class VisualizationTools:
     @staticmethod

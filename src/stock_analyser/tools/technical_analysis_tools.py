@@ -1,7 +1,7 @@
 import pandas as pd
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 import talib
-from ...utils.logger import logger
+from stock_analyser.utils.logger import logger
 
 class TechnicalAnalysisTools(BaseTool):
     name: str = "Technical Analysis Tools"
