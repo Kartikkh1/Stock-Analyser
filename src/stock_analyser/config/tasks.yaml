@@ -1,15 +1,18 @@
 researcher_task:
   description: >
-    Conduct a thorough research about ticker symbol {name} using the assigned LLM's capabilities.
+    Conduct a thorough research about ticker symbol {name} using the assigned LLM's capabilities and Finnhub API for structured financial data.
     Make sure you find any interesting and relevant information about the company, how it is performing, what are analysts saying about it.
-    Make sure to add last 4 quater earnings results, analyst ratings, future price predictions, etc.
+    Retrieve and analyze fundamental data from Finnhub including:
+    - Key financial statements (income statement, balance sheet, cash flow statement) for the last 5 years.
+    - Important financial ratios (P/E ratio, EPS, Debt-to-Equity, Current Ratio, Return on Equity).
+    - Last 4 quarter earnings results, analyst ratings, future price predictions, etc.
     Find news articles, blog posts, etc. that are relevant to the company and its stock market performance.
     Also make sure to find what could go wrong, what are the risks, etc.
     Also track last 2 month price movement, volume, volatility, and other technical indicators.
     Who all are the major shareholders, who all are the major institutional investors, who all are the major insiders, etc.
-    the current year is {current_year}.
+    The current year is {current_year}.
   expected_output: >
-    A list with 40 bullet points of the most relevant information about ticker symbol {name}
+    A comprehensive report with 40 bullet points detailing the most relevant fundamental and market information about ticker symbol {name}, including structured financial data from Finnhub and a summary of the company's financial health.
   agent: researcher
 
 reporter_task:
