@@ -60,14 +60,14 @@ technical_analyst_task:
     Perform a comprehensive technical analysis for the ticker symbol {name}.
     Utilize Finnhub data to retrieve historical stock prices and calculate
     key technical indicators such as Moving Averages (SMA, EMA), Relative Strength Index (RSI),
-    Moving Average Convergence Divergence (MACD), and Bollinger Bands.
+    Moving Average Convergence Divergence (MACD), Bollinger Bands, Ichimoku Cloud, Fibonacci Retracements, and Average True Range (ATR).
     Interpret these indicators to identify trends, momentum, and potential buy/sell signals.
     Focus on providing actionable insights based on the technical patterns observed.
     The current year is {current_year}.
   expected_output: >
     A detailed technical analysis report for {name}, including:
     - Current price and recent price movements.
-    - Calculated values and interpretations for SMA, EMA, RSI, MACD, and Bollinger Bands.
+    - Calculated values and interpretations for SMA, EMA, RSI, MACD, Bollinger Bands, Ichimoku Cloud components, Fibonacci Retracement levels, and ATR.
     - Identification of key support and resistance levels.
     - Potential bullish or bearish signals.
     - A summary of overall technical outlook and recommendations.

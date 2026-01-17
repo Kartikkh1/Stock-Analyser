@@ -5,6 +5,7 @@ from typing import List
 from crewai_tools import SerperDevTool
 from .tools.finnhub_tools import FinnhubAPITools
 from .tools.visualization_tools import VisualizationTools
+from .tools.technical_analysis_tools import TechnicalAnalysisTools
 
 @CrewBase
 class StockAnalyser():
@@ -18,6 +19,7 @@ class StockAnalyser():
     serper_dev_tool = SerperDevTool()
     finnhub_api_tools = FinnhubAPITools() # API key will be read from FINNHUB_API_KEY environment variable
     visualization_tools = VisualizationTools()
+    technical_analysis_tools = TechnicalAnalysisTools()
 
     def __init__(self, selected_llm_type: str):
         self.selected_llm_type = selected_llm_type
@@ -45,7 +47,7 @@ class StockAnalyser():
         return Agent(
             config=self.agents_config['technical_analyst'], # type: ignore[index]
             llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # Technical analyst will use the selected LLM
-            tools=[self.finnhub_api_tools],
+            tools=[self.finnhub_api_tools, self.technical_analysis_tools],
             verbose=True
         )
 

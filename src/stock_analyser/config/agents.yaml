@@ -37,6 +37,7 @@ technical_analyst:
     using a variety of technical indicators. You are known for your precision and data-driven recommendations.
   tools:
     - finnhub_tools
+    - technical_analysis_tools
 
 fundamental_analyst:
   role: >
