@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import io
 import base64
+from ...utils.logger import logger
 
 class VisualizationTools:
     @staticmethod
@@ -16,6 +17,7 @@ class VisualizationTools:
         Returns:
             A base64 encoded string of the plot image.
         """
+        logger.debug(f"Attempting to plot stock prices for {ticker}.")
         try:
             plt.figure(figsize=(10, 6))
             plt.plot(historical_data['Date'], historical_data['Close'], marker='o', linestyle='-')
@@ -31,13 +33,14 @@ class VisualizationTools:
             img_buffer.seek(0)
             img_str = base64.b64encode(img_buffer.read()).decode('utf-8')
             plt.close()
+            logger.debug(f"Successfully plotted stock prices for {ticker}.")
             return img_str
         except KeyError as e:
-            print(f"Error plotting stock prices: Missing column {e}. Ensure 'Date' and 'Close' columns exist.")
+            logger.error(f"Error plotting stock prices: Missing column {e}. Ensure 'Date' and 'Close' columns exist.", exc_info=True)
             return f"Error: Missing data for plotting stock prices: {e}"
         except Exception as e:
-            print(f"An unexpected error occurred during plotting stock prices for {ticker}: {e}")
-            return f"Error: An unexpected error occurred during plotting stock prices for {ticker}: {e} கவனம்"
+            logger.error(f"An unexpected error occurred during plotting stock prices for {ticker}: {e}", exc_info=True)
+            return f"Error: An unexpected error occurred during plotting stock prices for {ticker}: {e}"
 
     @staticmethod
     def plot_macd(data: pd.DataFrame, ticker: str) -> str:
@@ -51,6 +54,7 @@ class VisualizationTools:
         Returns:
             A base64 encoded string of the plot image.
         """
+        logger.debug(f"Attempting to plot MACD for {ticker}.")
         try:
             plt.figure(figsize=(10, 6))
             plt.plot(data['Date'], data['MACD'], label='MACD', color='blue')
@@ -69,12 +73,13 @@ class VisualizationTools:
             img_buffer.seek(0)
             img_str = base64.b64encode(img_buffer.read()).decode('utf-8')
             plt.close()
+            logger.debug(f"Successfully plotted MACD for {ticker}.")
             return img_str
         except KeyError as e:
-            print(f"Error plotting MACD: Missing column {e}. Ensure 'Date', 'MACD', 'Signal_Line', and 'Histogram' columns exist.")
+            logger.error(f"Error plotting MACD: Missing column {e}. Ensure 'Date', 'MACD', 'Signal_Line', and 'Histogram' columns exist.", exc_info=True)
             return f"Error: Missing data for plotting MACD: {e}"
         except Exception as e:
-            print(f"An unexpected error occurred during plotting MACD for {ticker}: {e}")
+            logger.error(f"An unexpected error occurred during plotting MACD for {ticker}: {e}", exc_info=True)
             return f"Error: An unexpected error occurred during plotting MACD for {ticker}: {e}"
 
     @staticmethod
@@ -89,6 +94,7 @@ class VisualizationTools:
         Returns:
             A base64 encoded string of the plot image.
         """
+        logger.debug(f"Attempting to plot RSI for {ticker}.")
         try:
             plt.figure(figsize=(10, 6))
             plt.plot(data['Date'], data['RSI'], label='RSI', color='purple')
@@ -107,10 +113,11 @@ class VisualizationTools:
             img_buffer.seek(0)
             img_str = base64.b64encode(img_buffer.read()).decode('utf-8')
             plt.close()
+            logger.debug(f"Successfully plotted RSI for {ticker}.")
             return img_str
         except KeyError as e:
-            print(f"Error plotting RSI: Missing column {e}. Ensure 'Date' and 'RSI' columns exist.")
+            logger.error(f"Error plotting RSI: Missing column {e}. Ensure 'Date' and 'RSI' columns exist.", exc_info=True)
             return f"Error: Missing data for plotting RSI: {e}"
         except Exception as e:
-            print(f"An unexpected error occurred during plotting RSI for {ticker}: {e}")
+            logger.error(f"An unexpected error occurred during plotting RSI for {ticker}: {e}", exc_info=True)
             return f"Error: An unexpected error occurred during plotting RSI for {ticker}: {e}"

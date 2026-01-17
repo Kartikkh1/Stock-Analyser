@@ -6,6 +6,7 @@ from crewai_tools import SerperDevTool
 from .tools.finnhub_tools import FinnhubAPITools
 from .tools.visualization_tools import VisualizationTools
 from .tools.technical_analysis_tools import TechnicalAnalysisTools
+from .utils.logger import logger
 
 @CrewBase
 class StockAnalyser():
@@ -20,13 +21,15 @@ class StockAnalyser():
     finnhub_api_tools = None
     try:
         finnhub_api_tools = FinnhubAPITools()
+        logger.info("FinnhubAPITools initialized successfully.")
     except ValueError as e:
-        print(f"Error initializing FinnhubAPITools: {e}")
+        logger.error(f"Error initializing FinnhubAPITools: {e}", exc_info=True)
     visualization_tools = VisualizationTools()
     technical_analysis_tools = TechnicalAnalysisTools()
 
     def __init__(self, selected_llm_type: str):
         self.selected_llm_type = selected_llm_type
+        logger.info(f"StockAnalyser initialized with LLM type: {selected_llm_type}")
 
     @agent
     def researcher(self) -> Agent:

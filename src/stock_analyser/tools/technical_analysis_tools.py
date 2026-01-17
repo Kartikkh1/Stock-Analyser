@@ -1,12 +1,14 @@
 import pandas as pd
 from crewai_tools import BaseTool
 import talib
+from ...utils.logger import logger
 
 class TechnicalAnalysisTools(BaseTool):
     name: str = "Technical Analysis Tools"
     description: str = "A collection of tools for calculating various technical indicators."
 
     def _run(self, tool_name: str, **kwargs):
+        logger.info(f"Executing Technical Analysis tool: {tool_name} with args: {kwargs}")
         if tool_name == "calculate_ichimoku_cloud":
             return self._calculate_ichimoku_cloud(**kwargs)
         elif tool_name == "calculate_fibonacci_retracements":
@@ -22,6 +24,7 @@ class TechnicalAnalysisTools(BaseTool):
         elif tool_name == "calculate_atr":
             return self._calculate_atr(**kwargs)
         else:
+            logger.warning(f"Unknown Technical Analysis tool name: {tool_name}")
             raise ValueError(f"Unknown tool name: {tool_name}")
 
     def _calculate_ichimoku_cloud(self, df: pd.DataFrame):
@@ -29,6 +32,7 @@ class TechnicalAnalysisTools(BaseTool):
         Calculates the Ichimoku Cloud for a given DataFrame of historical prices.
         The DataFrame should have 'high', 'low', 'close' columns.
         """
+        logger.debug("Calculating Ichimoku Cloud.")
         try:
             # Tenkan-sen (Conversion Line): (9-period high + 9-period low) / 2
             high_9 = df['high'].rolling(window=9).max()
@@ -51,18 +55,20 @@ class TechnicalAnalysisTools(BaseTool):
             # Chikou Span (Lagging Span): Close plotted 26 periods behind
             df['chikou_span'] = df['close'].shift(-26)
 
+            logger.debug("Ichimoku Cloud calculated successfully.")
             return df[['tenkan_sen', 'kijun_sen', 'senkou_span_a', 'senkou_span_b', 'chikou_span']].to_dict('records')
         except KeyError as e:
-            print(f"Error in Ichimoku Cloud calculation: Missing column {e}. Ensure 'high', 'low', 'close' columns exist.")
+            logger.error(f"Error in Ichimoku Cloud calculation: Missing column {e}. Ensure 'high', 'low', 'close' columns exist.", exc_info=True)
             return {"error": f"Missing data for Ichimoku Cloud calculation: {e}"}
         except Exception as e:
-            print(f"An unexpected error occurred during Ichimoku Cloud calculation: {e}")
+            logger.error(f"An unexpected error occurred during Ichimoku Cloud calculation: {e}", exc_info=True)
             return {"error": str(e)}
 
     def _calculate_fibonacci_retracements(self, high: float, low: float):
         """
         Calculates Fibonacci Retracement levels given a high and a low point.
         """
+        logger.debug(f"Calculating Fibonacci Retracements for high: {high}, low: {low}")
         try:
             diff = high - low
             levels = {
@@ -73,9 +79,10 @@ class TechnicalAnalysisTools(BaseTool):
                 "61.8%": high - 0.618 * diff,
                 "100%": low,
             }
+            logger.debug("Fibonacci Retracements calculated successfully.")
             return levels
         except Exception as e:
-            print(f"An unexpected error occurred during Fibonacci Retracements calculation: {e}")
+            logger.error(f"An unexpected error occurred during Fibonacci Retracements calculation: {e}", exc_info=True)
             return {"error": str(e)}
 
     def _calculate_moving_averages(self, df: pd.DataFrame, timeperiod: int = 20):
@@ -83,15 +90,17 @@ class TechnicalAnalysisTools(BaseTool):
         Calculates Simple Moving Average (SMA) and Exponential Moving Average (EMA).
         The DataFrame should have a 'close' column.
         """
+        logger.debug(f"Calculating Moving Averages with timeperiod: {timeperiod}")
         try:
             df['SMA'] = talib.SMA(df['close'], timeperiod=timeperiod)
             df['EMA'] = talib.EMA(df['close'], timeperiod=timeperiod)
+            logger.debug("Moving Averages calculated successfully.")
             return df[['SMA', 'EMA']].to_dict('records')
         except KeyError as e:
-            print(f"Error in Moving Averages calculation: Missing column {e}. Ensure 'close' column exists.")
+            logger.error(f"Error in Moving Averages calculation: Missing column {e}. Ensure 'close' column exists.", exc_info=True)
             return {"error": f"Missing data for Moving Averages calculation: {e}"}
         except Exception as e:
-            print(f"An unexpected error occurred during Moving Averages calculation: {e}")
+            logger.error(f"An unexpected error occurred during Moving Averages calculation: {e}", exc_info=True)
             return {"error": str(e)}
 
     def _calculate_rsi(self, df: pd.DataFrame, timeperiod: int = 14):
@@ -99,14 +108,16 @@ class TechnicalAnalysisTools(BaseTool):
         Calculates the Relative Strength Index (RSI).
         The DataFrame should have a 'close' column.
         """
+        logger.debug(f"Calculating RSI with timeperiod: {timeperiod}")
         try:
             df['RSI'] = talib.RSI(df['close'], timeperiod=timeperiod)
+            logger.debug("RSI calculated successfully.")
             return df[['RSI']].to_dict('records')
         except KeyError as e:
-            print(f"Error in RSI calculation: Missing column {e}. Ensure 'close' column exists.")
+            logger.error(f"Error in RSI calculation: Missing column {e}. Ensure 'close' column exists.", exc_info=True)
             return {"error": f"Missing data for RSI calculation: {e}"}
         except Exception as e:
-            print(f"An unexpected error occurred during RSI calculation: {e}")
+            logger.error(f"An unexpected error occurred during RSI calculation: {e}", exc_info=True)
             return {"error": str(e)}
 
     def _calculate_macd(self, df: pd.DataFrame, fastperiod: int = 12, slowperiod: int = 26, signalperiod: int = 9):
@@ -114,17 +125,19 @@ class TechnicalAnalysisTools(BaseTool):
         Calculates the Moving Average Convergence Divergence (MACD).
         The DataFrame should have a 'close' column.
         """
+        logger.debug(f"Calculating MACD with fastperiod: {fastperiod}, slowperiod: {slowperiod}, signalperiod: {signalperiod}")
         try:
             macd, macdsignal, macdhist = talib.MACD(df['close'], fastperiod=fastperiod, slowperiod=slowperiod, signalperiod=signalperiod)
             df['MACD'] = macd
             df['MACD_Signal'] = macdsignal
             df['MACD_Hist'] = macdhist
+            logger.debug("MACD calculated successfully.")
             return df[['MACD', 'MACD_Signal', 'MACD_Hist']].to_dict('records')
         except KeyError as e:
-            print(f"Error in MACD calculation: Missing column {e}. Ensure 'close' column exists.")
+            logger.error(f"Error in MACD calculation: Missing column {e}. Ensure 'close' column exists.", exc_info=True)
             return {"error": f"Missing data for MACD calculation: {e}"}
         except Exception as e:
-            print(f"An unexpected error occurred during MACD calculation: {e}")
+            logger.error(f"An unexpected error occurred during MACD calculation: {e}", exc_info=True)
             return {"error": str(e)}
 
     def _calculate_bollinger_bands(self, df: pd.DataFrame, timeperiod: int = 20, nbdevup: int = 2, nbdevdn: int = 2):
@@ -132,17 +145,19 @@ class TechnicalAnalysisTools(BaseTool):
         Calculates Bollinger Bands.
         The DataFrame should have a 'close' column.
         """
+        logger.debug(f"Calculating Bollinger Bands with timeperiod: {timeperiod}")
         try:
             upper, middle, lower = talib.BBANDS(df['close'], timeperiod=timeperiod, nbdevup=nbdevup, nbdevdn=nbdevdn)
             df['Bollinger_Upper'] = upper
             df['Bollinger_Middle'] = middle
             df['Bollinger_Lower'] = lower
+            logger.debug("Bollinger Bands calculated successfully.")
             return df[['Bollinger_Upper', 'Bollinger_Middle', 'Bollinger_Lower']].to_dict('records')
         except KeyError as e:
-            print(f"Error in Bollinger Bands calculation: Missing column {e}. Ensure 'close' column exists.")
+            logger.error(f"Error in Bollinger Bands calculation: Missing column {e}. Ensure 'close' column exists.", exc_info=True)
             return {"error": f"Missing data for Bollinger Bands calculation: {e}"}
         except Exception as e:
-            print(f"An unexpected error occurred during Bollinger Bands calculation: {e}")
+            logger.error(f"An unexpected error occurred during Bollinger Bands calculation: {e}", exc_info=True)
             return {"error": str(e)}
 
     def _calculate_atr(self, df: pd.DataFrame, timeperiod: int = 14):
@@ -150,12 +165,14 @@ class TechnicalAnalysisTools(BaseTool):
         Calculates the Average True Range (ATR).
         The DataFrame should have 'high', 'low', 'close' columns.
         """
+        logger.debug(f"Calculating ATR with timeperiod: {timeperiod}")
         try:
             df['ATR'] = talib.ATR(df['high'], df['low'], df['close'], timeperiod=timeperiod)
+            logger.debug("ATR calculated successfully.")
             return df[['ATR']].to_dict('records')
         except KeyError as e:
-            print(f"Error in ATR calculation: Missing column {e}. Ensure 'high', 'low', 'close' columns exist.")
+            logger.error(f"Error in ATR calculation: Missing column {e}. Ensure 'high', 'low', 'close' columns exist.", exc_info=True)
             return {"error": f"Missing data for ATR calculation: {e}"}
         except Exception as e:
-            print(f"An unexpected error occurred during ATR calculation: {e}")
+            logger.error(f"An unexpected error occurred during ATR calculation: {e}", exc_info=True)
             return {"error": str(e)}
