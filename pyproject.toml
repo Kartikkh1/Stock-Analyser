@@ -1,28 +1,23 @@
 [project]
 name = "stock_analyser"
 version = "0.1.0"
-description = "stock_annalyzer using crewAI"
-authors = [{ name = "Your Name", email = "you@example.com" }]
+description = "A stock analysis system"
+authors = [{ name = "Kartik Khandelwal", email = "xxxx" }]
 requires-python = ">=3.10,<3.14"
 dependencies = [
-    "crewai[anthropic,google-genai,openai,tools]==1.7.0",
     "finnhub-python",
     "matplotlib",
     "pandas",
     "pillow",
+    "scikit-learn",
+    "python-dotenv",
+    "TA-Lib",
 ]
 
 [project.scripts]
 stock_analyser = "stock_analyser.main:run"
-run_crew = "stock_analyser.main:run"
-train = "stock_analyser.main:train"
-replay = "stock_analyser.main:replay"
-test = "stock_analyser.main:test"
-run_with_trigger = "stock_analyser.main:run_with_trigger"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.crewai]
-type = "crew"

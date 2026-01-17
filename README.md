@@ -1,54 +1,48 @@
-# StockAnalyser Crew
+# Stock Analysis System
 
-Welcome to the StockAnalyser Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+## Project Definition
+This project implements a stock analysis system that leverages AI agents to perform comprehensive research and analysis of stock market data. The system aims to provide detailed insights into various aspects of a given stock, including technical indicators, fundamental analysis, and market sentiment.
 
-## Installation
+## How to Run
+To run this project, follow these steps:
 
-Ensure you have Python >=3.10 <3.14 installed on your system. This project uses [UV](https://docs.astral.sh/uv/) for dependency management and package handling, offering a seamless setup and execution experience.
+1.  **Prerequisites:** Ensure you have Python 3.10 or higher installed.
 
-First, if you haven't already, install uv:
+2.  **Install UV (if you haven't already):**
 
-```bash
-pip install uv
-```
+    ```bash
+    pip install uv
+    ```
 
-Next, navigate to your project directory and install the dependencies:
+3.  **Install Dependencies:**
+    Navigate to your project directory and install the dependencies. `uv` will automatically create a virtual environment (`.venv`) if one isn't already active.
 
-(Optional) Lock the dependencies and install them by using the CLI command:
-```bash
-crewai install
-```
-### Customizing
+    ```bash
+    uv sync
+    ```
 
-**Add your `OPENAI_API_KEY` into the `.env` file**
+4.  **Environment Variables:**
+    Create a `.env` file in the root directory of the project and add your API keys. For example:
 
-- Modify `src/stock_analyser/config/agents.yaml` to define your agents
-- Modify `src/stock_analyser/config/tasks.yaml` to define your tasks
-- Modify `src/stock_analyser/crew.py` to add your own logic, tools and specific args
-- Modify `src/stock_analyser/main.py` to add custom inputs for your agents and tasks
+    ```
+    FINNHUB_API_KEY="your_finnhub_api_key_here"
+    OPENAI_API_KEY="your_openai_api_key_here"
+    ANTHROPIC_API_KEY="your_anthropic_api_key_here"
+    GEMINI_API_KEY="your_gemini_api_key_here"
+    ```
 
-## Running the Project
+5.  **Execute the System:**
+    Run the main application script:
 
-To kickstart your crew of AI agents and begin task execution, run this from the root folder of your project:
+    ```bash
+    uv run stock_analyser
+    ```
 
-```bash
-$ crewai run
-```
+## What We Are Doing
+The system orchestrates several AI agents, each specializing in a different aspect of stock analysis:
 
-This command initializes the stock_analyser Crew, assembling the agents and assigning them tasks as defined in your configuration.
-
-This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
-
-## Understanding Your Crew
-
-The stock_analyser Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
-
-## Support
-
-For support, questions, or feedback regarding the StockAnalyser Crew or crewAI.
-- Visit our [documentation](https://docs.crewai.com)
-- Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
-- [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
-- [Chat with our docs](https://chatg.pt/DWjSBZn)
-
-Let's create wonders together with the power and simplicity of crewAI.
+*   **Technical Analyst:** Analyzes historical price data to identify trends, support/resistance levels, and potential trading opportunities using various technical indicators.
+*   **Fundamental Analyst:** Assesses a company's financial health and intrinsic value by examining financial statements and key financial ratios.
+*   **Sentiment Analyst:** Gathers and interprets public and market sentiment from news, social media, and other sources to understand emotional drivers behind stock movements.
+*   **Researcher:** Conducts broad market research to uncover general news, developments, analyst ratings, and other relevant qualitative information.
+*   **Reporter:** Compiles the findings from all agents into a comprehensive and detailed stock analysis report.
