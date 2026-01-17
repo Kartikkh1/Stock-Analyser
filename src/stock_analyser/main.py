@@ -5,6 +5,8 @@ import logging
 
 from datetime import datetime
 
+from dotenv import load_dotenv
+
 from stock_analyser.crew import StockAnalyser
 from stock_analyser.utils.logger import logger
 
@@ -15,7 +17,7 @@ def run():
     Run the crew.
     """
     logger.info("Starting Stock Analyser application.")
-
+    load_dotenv()
     inputs = {
         'name': 'MSTR', 
         'current_year': str(datetime.now().year)

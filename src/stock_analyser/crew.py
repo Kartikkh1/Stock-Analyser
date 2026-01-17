@@ -18,9 +18,9 @@ class StockAnalyser():
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
     serper_dev_tool = SerperDevTool()
-    finnhub_api_tools = None
+    finnhub_tools = None
     try:
-        finnhub_api_tools = FinnhubAPITools()
+        finnhub_tools = FinnhubAPITools()
         logger.info("FinnhubAPITools initialized successfully.")
     except ValueError as e:
         logger.error(f"Error initializing FinnhubAPITools: {e}", exc_info=True)
