@@ -42,7 +42,7 @@ def run():
         logger.warning("Invalid selection. Defaulting to Anthropic.")
 
     try:
-        StockAnalyser(selected_llm_type).crew().kickoff(inputs=inputs)
+        StockAnalyser(selected_llm_type, stock_name=inputs['name']).crew().kickoff(inputs=inputs)
         logger.info("Stock Analyser crew successfully kicked off.")
     except Exception as e:
         logger.error(f"An error occurred while running the crew: {e}", exc_info=True)

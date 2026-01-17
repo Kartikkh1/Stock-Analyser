@@ -12,8 +12,9 @@ dependencies = [
     "scikit-learn",
     "python-dotenv",
     "TA-Lib",
-    "crewai",
+    "crewai[google-genai]",
     "crewai_tools",
+    "anthropic",
 ]
 
 [project.scripts]

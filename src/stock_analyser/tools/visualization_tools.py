@@ -2,11 +2,27 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import io
 import base64
+from crewai.tools import BaseTool
 from stock_analyser.utils.logger import logger
 
-class VisualizationTools:
-    @staticmethod
-    def plot_stock_prices(historical_data: pd.DataFrame, ticker: str) -> str:
+import logging
+logging.getLogger('matplotlib.font_manager').setLevel(logging.ERROR)
+
+class VisualizationTools(BaseTool):
+    name: str = "Visualization Tools"
+    description: str = "Tools for generating various stock-related plots."
+
+    def _run(self, tool_name: str, **kwargs):
+        if tool_name == "plot_stock_prices":
+            return self.plot_stock_prices(**kwargs)
+        elif tool_name == "plot_macd":
+            return self.plot_macd(**kwargs)
+        elif tool_name == "plot_rsi":
+            return self.plot_rsi(**kwargs)
+        else:
+            raise ValueError(f"Unknown Visualization tool name: {tool_name}")
+
+    def plot_stock_prices(self, historical_data: pd.DataFrame, ticker: str) -> str:
         """
         Generates a line plot of historical stock prices.
 
@@ -42,8 +58,7 @@ class VisualizationTools:
             logger.error(f"An unexpected error occurred during plotting stock prices for {ticker}: {e}", exc_info=True)
             return f"Error: An unexpected error occurred during plotting stock prices for {ticker}: {e}"
 
-    @staticmethod
-    def plot_macd(data: pd.DataFrame, ticker: str) -> str:
+    def plot_macd(self, data: pd.DataFrame, ticker: str) -> str:
         """
         Generates a plot of MACD and Signal Line.
 
@@ -82,8 +97,7 @@ class VisualizationTools:
             logger.error(f"An unexpected error occurred during plotting MACD for {ticker}: {e}", exc_info=True)
             return f"Error: An unexpected error occurred during plotting MACD for {ticker}: {e}"
 
-    @staticmethod
-    def plot_rsi(data: pd.DataFrame, ticker: str) -> str:
+    def plot_rsi(self, data: pd.DataFrame, ticker: str) -> str:
         """
         Generates a plot of RSI.
 
