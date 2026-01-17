@@ -1,15 +1,8 @@
 researcher_task:
   description: >
-    Conduct a thorough research about ticker symbol {name} using the assigned LLM's capabilities and Finnhub API for structured financial data.
-    Make sure you find any interesting and relevant information about the company, how it is performing, what are analysts saying about it.
-    Retrieve and analyze fundamental data from Finnhub including:
-    - Key financial statements (income statement, balance sheet, cash flow statement) for the last 5 years.
-    - Important financial ratios (P/E ratio, EPS, Debt-to-Equity, Current Ratio, Return on Equity).
-    - Last 4 quarter earnings results, analyst ratings, future price predictions, etc.
-    Find news articles, blog posts, etc. that are relevant to the company and its stock market performance.
-    Also make sure to find what could go wrong, what are the risks, etc.
-    Also track last 2 month price movement, volume, volatility, and other technical indicators.
-    Who all are the major shareholders, who all are the major institutional investors, who all are the major insiders, etc.
+    Conduct broad market research for ticker symbol {name} using the assigned LLM's capabilities and web search to uncover general news, developments,
+    analyst ratings, future price predictions, potential risks, and insights into major shareholders, institutional investors, and insiders.
+    This task focuses on gathering qualitative information and market context that complements the detailed quantitative analyses provided by other specialized agents.
     The current year is {current_year}.
   expected_output: >
     A comprehensive report with 40 bullet points detailing the most relevant fundamental and market information about ticker symbol {name}, including structured financial data from Finnhub and a summary of the company's financial health.
@@ -24,8 +17,41 @@ reporter_task:
     Formatted as markdown without '```'
   context:
     - researcher_task
+    - sentiment_analysis_task
+    - technical_analyst_task
+    - chart_pattern_analysis_task
+    - fundamental_analysis_task
   markdown: true
   agent: reporter
+
+chart_pattern_analysis_task:
+  description: >
+    Analyze historical price charts for {name} to identify significant chart patterns
+    such as support and resistance levels, head and shoulders, double tops/bottoms,
+    and triangles. Interpret these patterns for potential future price movements and provide insights.
+    The current year is {current_year}.
+  expected_output: >
+    A detailed analysis of identified chart patterns for {name}, including descriptions of patterns,
+    their implications for price action, and potential trading signals.
+    Formatted as markdown without '```'
+  agent: technical_analyst
+
+fundamental_analysis_task:
+  description: >
+    Perform a deep fundamental analysis for ticker symbol {name}.
+    Retrieve comprehensive financial statements (income statement, balance sheet, cash flow statement) for the last 5 years
+    using the Finnhub API. Calculate and interpret key financial ratios such as P/E ratio, EPS, Debt-to-Equity,
+    Current Ratio, and Return on Equity. Provide an overall assessment of the company's financial health and intrinsic value.
+    The current year is {current_year}.
+  expected_output: >
+    A detailed fundamental analysis report for {name}, including:
+    - Summaries of key financial statements.
+    - Calculated and interpreted financial ratios.
+    - An overall assessment of financial health, intrinsic value, and long-term investment potential.
+    Formatted as markdown without '```'
+  context:
+    - researcher_task
+  agent: fundamental_analyst
 
 technical_analyst_task:
   description: >
@@ -45,3 +71,14 @@ technical_analyst_task:
     - A summary of overall technical outlook and recommendations.
     Formatted as markdown without '```'
   agent: technical_analyst
+
+sentiment_analysis_task:
+  description: >
+    Utilize Finnhub's news and sentiment data capabilities, and conduct broader web searches to gauge public and market sentiment towards the ticker symbol {name}.
+    Gather news sentiment data using the Finnhub API and also search for additional news articles, social media discussions, and analyst opinions to gain a comprehensive understanding of the sentiment.
+    Integrate all gathered sentiment data into the analysis report, identifying key trends and their potential impact.
+    The current year is {current_year}.
+  expected_output: >
+    A concise summary of the news sentiment for {name}, including overall sentiment scores, any notable positive or negative news trends, and their potential impact on the stock.
+    Formatted as markdown without '```'
+  agent: sentiment_analyst

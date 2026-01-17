@@ -66,13 +66,31 @@ class StockAnalyser():
             config=self.tasks_config['technical_analyst_task'], # type: ignore[index]
         )
 
+    @task
+    def chart_pattern_analysis_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['chart_pattern_analysis_task'], # type: ignore[index]
+        )
+
+    @task
+    def sentiment_analysis_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['sentiment_analysis_task'], # type: ignore[index]
+        )
+
+    @task
+    def fundamental_analysis_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['fundamental_analysis_task'], # type: ignore[index]
+        )
+
     @crew
     def crew(self) -> Crew:
         """Creates the StockAnnalyzer crew"""
         return Crew(
-            agents=[self.researcher(), self.reporter(), self.technical_analyst()],
-            tasks=[self.researcher_task(), self.reporter_task(), self.technical_analyst_task()],
-            process=Process.sequential,
+            agents=[self.researcher(), self.reporter(), self.technical_analyst(), self.sentiment_analyst(), self.fundamental_analyst()],
+            tasks=[self.researcher_task(), self.sentiment_analysis_task(), self.technical_analyst_task(), self.chart_pattern_analysis_task(), self.fundamental_analysis_task(), self.reporter_task()],
+            process=Process.parallel,
             verbose=True,
             tracing=True,
         )
