@@ -11,7 +11,7 @@ To run this project, follow these steps:
 2.  **Install UV (if you haven't already):**
 
     ```bash
-    pip install uv
+    pip3 install uv
     ```
 
 3.  **Install Dependencies:**
@@ -22,13 +22,13 @@ To run this project, follow these steps:
     ```
 
 4.  **Environment Variables:**
-    Create a `.env` file in the root directory of the project and add your API keys. For example:
+    Create a `.env` file in the root directory of the project and add the API keys for the LLMs you intend to use. For Finnhub, the API key is always required. For example:
 
     ```
     FINNHUB_API_KEY="your_finnhub_api_key_here"
-    OPENAI_API_KEY="your_openai_api_key_here"
-    ANTHROPIC_API_KEY="your_anthropic_api_key_here"
-    GEMINI_API_KEY="your_gemini_api_key_here"
+    OPENAI_API_KEY="your_openai_api_key_here" # Required if choosing OpenAI LLM
+    ANTHROPIC_API_KEY="your_anthropic_api_key_here" # Required if choosing Anthropic LLM
+    GEMINI_API_KEY="your_gemini_api_key_here" # Required if choosing Gemini LLM
     ```
 
 5.  **Execute the System:**

@@ -15,6 +15,7 @@ dependencies = [
     "crewai[google-genai]",
     "crewai_tools",
     "anthropic",
+    "openai",
 ]
 
 [project.scripts]
