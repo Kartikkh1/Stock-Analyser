@@ -17,7 +17,11 @@ class StockAnalyser():
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
     serper_dev_tool = SerperDevTool()
-    finnhub_api_tools = FinnhubAPITools() # API key will be read from FINNHUB_API_KEY environment variable
+    finnhub_api_tools = None
+    try:
+        finnhub_api_tools = FinnhubAPITools()
+    except ValueError as e:
+        print(f"Error initializing FinnhubAPITools: {e}")
     visualization_tools = VisualizationTools()
     technical_analysis_tools = TechnicalAnalysisTools()
 
@@ -26,28 +30,61 @@ class StockAnalyser():
 
     @agent
     def researcher(self) -> Agent:
+        researcher_tools = [self.serper_dev_tool]
+        if self.finnhub_api_tools:
+            researcher_tools.append(self.finnhub_api_tools)
         return Agent(
             config=self.agents_config['researcher'], # type: ignore[index]
             llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
-            tools=[self.serper_dev_tool, self.finnhub_api_tools],
+            tools=researcher_tools,
             verbose=True
         )
 
     @agent
     def reporter(self) -> Agent:
+        reporter_tools = [self.serper_dev_tool, self.visualization_tools]
+        if self.finnhub_api_tools:
+            reporter_tools.append(self.finnhub_api_tools)
         return Agent(
             config=self.agents_config['reporter'], # type: ignore[index]
             llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
-            tools=[self.serper_dev_tool, self.finnhub_api_tools, self.visualization_tools],
+            tools=reporter_tools,
             verbose=True
         )
 
     @agent
     def technical_analyst(self) -> Agent:
+        technical_analyst_tools = [self.technical_analysis_tools]
+        if self.finnhub_api_tools:
+            technical_analyst_tools.append(self.finnhub_api_tools)
         return Agent(
             config=self.agents_config['technical_analyst'], # type: ignore[index]
             llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # Technical analyst will use the selected LLM
-            tools=[self.finnhub_api_tools, self.technical_analysis_tools],
+            tools=technical_analyst_tools,
+            verbose=True
+        )
+
+    @agent
+    def fundamental_analyst(self) -> Agent:
+        fundamental_analyst_tools = []
+        if self.finnhub_api_tools:
+            fundamental_analyst_tools.append(self.finnhub_api_tools)
+        return Agent(
+            config=self.agents_config['fundamental_analyst'], # type: ignore[index]
+            llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
+            tools=fundamental_analyst_tools,
+            verbose=True
+        )
+
+    @agent
+    def sentiment_analyst(self) -> Agent:
+        sentiment_analyst_tools = []
+        if self.finnhub_api_tools:
+            sentiment_analyst_tools.append(self.finnhub_api_tools)
+        return Agent(
+            config=self.agents_config['sentiment_analyst'], # type: ignore[index]
+            llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
+            tools=sentiment_analyst_tools,
             verbose=True
         )
 

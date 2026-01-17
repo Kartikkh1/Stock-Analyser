@@ -1,6 +1,7 @@
 import os
 from crewai_tools import BaseTool
 import finnhub
+from finnhub import Client, exceptions
 
 class FinnhubAPITools(BaseTool):
     name: str = "Finnhub API Tools"
@@ -40,7 +41,14 @@ class FinnhubAPITools(BaseTool):
         Returns:
             dict: Historical price data.
         """
-        return self.finnhub_client.stock_candles(symbol, resolution, _from, to)
+        try:
+            return self.finnhub_client.stock_candles(symbol, resolution, _from, to)
+        except finnhub.exceptions.FinnhubAPIException as e:
+            print(f"Finnhub API Error fetching historical prices for {symbol}: {e}")
+            return {"error": str(e)}
+        except Exception as e:
+            print(f"An unexpected error occurred fetching historical prices for {symbol}: {e}")
+            return {"error": str(e)}
 
     def _get_fundamental_data(self, symbol: str, metric_type: str):
         """
@@ -53,7 +61,14 @@ class FinnhubAPITools(BaseTool):
         Returns:
             dict: Fundamental data.
         """
-        return self.finnhub_client.company_basic_financials(symbol, metric_type)
+        try:
+            return self.finnhub_client.company_basic_financials(symbol, metric_type)
+        except finnhub.exceptions.FinnhubAPIException as e:
+            print(f"Finnhub API Error fetching fundamental data for {symbol}: {e}")
+            return {"error": str(e)}
+        except Exception as e:
+            print(f"An unexpected error occurred fetching fundamental data for {symbol}: {e}")
+            return {"error": str(e)}
 
     def _get_real_time_quote(self, symbol: str):
         """
@@ -65,7 +80,14 @@ class FinnhubAPITools(BaseTool):
         Returns:
             dict: Real-time quote data.
         """
-        return self.finnhub_client.quote(symbol)
+        try:
+            return self.finnhub_client.quote(symbol)
+        except finnhub.exceptions.FinnhubAPIException as e:
+            print(f"Finnhub API Error fetching real-time quote for {symbol}: {e}")
+            return {"error": str(e)}
+        except Exception as e:
+            print(f"An unexpected error occurred fetching real-time quote for {symbol}: {e}")
+            return {"error": str(e)}
 
     def _get_company_news(self, symbol: str, _from: str, to: str):
         """
@@ -79,7 +101,14 @@ class FinnhubAPITools(BaseTool):
         Returns:
             list: List of news articles.
         """
-        return self.finnhub_client.company_news(symbol, _from, to)
+        try:
+            return self.finnhub_client.company_news(symbol, _from, to)
+        except finnhub.exceptions.FinnhubAPIException as e:
+            print(f"Finnhub API Error fetching company news for {symbol}: {e}")
+            return {"error": str(e)}
+        except Exception as e:
+            print(f"An unexpected error occurred fetching company news for {symbol}: {e}")
+            return {"error": str(e)}
 
     def _get_news_sentiment(self, symbol: str):
         """
@@ -91,4 +120,11 @@ class FinnhubAPITools(BaseTool):
         Returns:
             dict: News sentiment data.
         """
-        return self.finnhub_client.news_sentiment(symbol)
+        try:
+            return self.finnhub_client.news_sentiment(symbol)
+        except finnhub.exceptions.FinnhubAPIException as e:
+            print(f"Finnhub API Error fetching news sentiment for {symbol}: {e}")
+            return {"error": str(e)}
+        except Exception as e:
+            print(f"An unexpected error occurred fetching news sentiment for {symbol}: {e}")
+            return {"error": str(e)}

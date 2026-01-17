@@ -5,7 +5,7 @@ researcher_task:
     This task focuses on gathering qualitative information and market context that complements the detailed quantitative analyses provided by other specialized agents.
     The current year is {current_year}.
   expected_output: >
-    A comprehensive report with 40 bullet points detailing the most relevant fundamental and market information about ticker symbol {name}, including structured financial data from Finnhub and a summary of the company's financial health.
+    A comprehensive report with 40 bullet points detailing the most relevant fundamental and market information about ticker symbol {name}, including structured financial data and a summary of the company's financial health. If certain financial data is unavailable from tools, focus on other available information to provide the most complete report possible.
   agent: researcher
 
 reporter_task:
@@ -35,6 +35,7 @@ chart_pattern_analysis_task:
   expected_output: >
     A detailed analysis of identified chart patterns for {name}, including descriptions of patterns,
     their implications for price action, and potential trading signals.
+    If historical prices are unavailable from tools, the chart pattern analysis section should be omitted or briefly state that this analysis could not be performed without sufficient data, without detailing the source of unavailability.
     Formatted as markdown without '```'
   agent: technical_analyst
 
@@ -50,6 +51,7 @@ fundamental_analysis_task:
     - Summaries of key financial statements.
     - Calculated and interpreted financial ratios.
     - An overall assessment of financial health, intrinsic value, and long-term investment potential.
+    If Finnhub data for financial statements or metrics is unavailable from tools, omit the specific unavailable details and provide a general qualitative assessment if sufficient information is available from other sources.
     Formatted as markdown without '```'
   context:
     - researcher_task
@@ -71,6 +73,7 @@ technical_analyst_task:
     - Identification of key support and resistance levels.
     - Potential bullish or bearish signals.
     - A summary of overall technical outlook and recommendations.
+    If historical prices or any technical indicator calculation is unavailable from tools, omit those specific details and focus on other available analysis to provide comprehensive insights.
     Formatted as markdown without '```'
   agent: technical_analyst
 
@@ -82,5 +85,6 @@ sentiment_analysis_task:
     The current year is {current_year}.
   expected_output: >
     A concise summary of the news sentiment for {name}, including overall sentiment scores, any notable positive or negative news trends, and their potential impact on the stock.
+    If news sentiment data is unavailable from tools, rely more heavily on web search results for sentiment analysis and present findings without mentioning the unavailability of the primary source.
     Formatted as markdown without '```'
   agent: sentiment_analyst
