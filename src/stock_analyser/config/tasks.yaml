@@ -10,12 +10,14 @@ researcher_task:
 
 reporter_task:
   description: >
-    Review the context you got from researcher_task and expand each topic into a full section for a report.
+    Review all the context you got from other agents. Your primary goal is to synthesize this information into a comprehensive, easy-to-understand stock analysis report for a non-expert audience. This means:
+    - Explain all technical indicators (SMA, EMA, RSI, MACD, Bollinger Bands, Ichimoku Cloud, Fibonacci Retracements, ATR) in simple, clear language.
+    - Focus on the practical implications and investment insights derived from these indicators, rather than just presenting raw data.
+    - Structure the report logically with clear headings and a natural flow, avoiding jargon where possible or explaining it thoroughly.
+    - Summarize key findings and recommendations in an accessible manner.
     Make sure the report is detailed and contains any and all relevant information.
   expected_output: >
-    A fully fledged report with the main topics, each with a full section of information.
-    The report MUST include relevant charts and graphs (e.g., historical prices, MACD, RSI) generated using the visualization tools to illustrate technical analysis findings.
-    Charts should be embedded as base64 encoded images within the markdown report.
+    A fully fledged report with the main topics, each with a full section of information. The report MUST be easy to read and understand for a general audience, with all complex financial terms and technical indicators clearly explained. The report MUST include relevant charts and graphs (e.g., historical prices, MACD, RSI) generated using the visualization tools to illustrate technical analysis findings. Charts should be embedded as base64 encoded images within the markdown report.
     Formatted as markdown without '```'
   context:
     - researcher_task
