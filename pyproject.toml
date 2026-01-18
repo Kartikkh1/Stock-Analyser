@@ -16,6 +16,7 @@ dependencies = [
     "crewai_tools",
     "anthropic",
     "openai",
+    "fastapi[standard]"
 ]
 
 [project.scripts]
