@@ -1,14 +1,33 @@
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import uvicorn
 import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
+import os
+import finnhub
 from stock_analyser.crew import StockAnalyser
 from stock_analyser.utils.logger import logger
 
+# Load environment variables
+load_dotenv()
+
 app = FastAPI()
+
+# Initialize Finnhub client for ticker validation
+finnhub_client = None
+try:
+    api_key = os.getenv("FINNHUB_API_KEY")
+    if api_key:
+        finnhub_client = finnhub.Client(api_key=api_key)
+        logger.info("Finnhub client initialized for ticker validation")
+except Exception as e:
+    logger.warning(f"Could not initialize Finnhub client: {e}")
+
+class TickerValidationRequest(BaseModel):
+    ticker: str
 
 origins = [
     "http://localhost",
@@ -22,6 +41,57 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.post("/api/validate-ticker")
+async def validate_ticker(request: TickerValidationRequest):
+    """
+    Validate if a stock ticker symbol exists in the market.
+    Returns ticker information if valid, or error if invalid.
+    """
+    ticker = request.ticker.upper().strip()
+    
+    if not ticker:
+        raise HTTPException(status_code=400, detail="Ticker symbol is required")
+    
+    if not finnhub_client:
+        # If Finnhub is not available, do basic format validation only
+        return {
+            "valid": True,
+            "ticker": ticker,
+            "message": "Format validation only (API not available)",
+            "company_name": None
+        }
+    
+    try:
+        # Try to get company profile to validate ticker exists
+        profile = finnhub_client.company_profile2(symbol=ticker)
+        
+        # Check if we got valid data back
+        if profile and profile.get('ticker'):
+            return {
+                "valid": True,
+                "ticker": ticker,
+                "company_name": profile.get('name', 'Unknown'),
+                "country": profile.get('country', 'Unknown'),
+                "exchange": profile.get('exchange', 'Unknown'),
+                "industry": profile.get('finnhubIndustry', 'Unknown')
+            }
+        else:
+            # Empty response means ticker doesn't exist
+            return {
+                "valid": False,
+                "ticker": ticker,
+                "message": "Ticker symbol not found"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error validating ticker {ticker}: {e}")
+        # If there's an error, assume ticker might not exist
+        return {
+            "valid": False,
+            "ticker": ticker,
+            "message": "Ticker symbol not found or API error"
+        }
 
 async def run_stock_analysis(websocket: WebSocket, stock_ticker: str, llm_choice: str):
     """Run stock analysis asynchronously and send updates via WebSocket."""

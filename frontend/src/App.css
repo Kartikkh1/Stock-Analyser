@@ -112,6 +112,12 @@
   gap: 0.5rem;
 }
 
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .label {
   color: var(--text-primary);
   font-size: 0.95rem;
@@ -122,6 +128,7 @@
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
+  padding-right: 3rem;
   font-size: 1rem;
   border: 2px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -142,9 +149,94 @@
   opacity: 0.6;
 }
 
+.input-valid {
+  border-color: var(--success-color);
+}
+
+.input-valid:focus {
+  border-color: var(--success-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.input-invalid {
+  border-color: var(--error-color);
+}
+
+.input-invalid:focus {
+  border-color: var(--error-color);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.validation-icon {
+  position: absolute;
+  right: 1rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.validation-icon.valid {
+  color: var(--success-color);
+  animation: scaleIn 0.3s ease;
+}
+
+.validation-icon.invalid {
+  color: var(--error-color);
+  animation: shake 0.3s ease;
+}
+
+.validation-spinner {
+  position: absolute;
+  right: 1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 .hint {
   color: var(--text-secondary);
   font-size: 0.875rem;
+}
+
+.error-hint {
+  color: var(--error-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.success-hint {
+  color: var(--success-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.info-hint {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.company-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+  animation: slideDown 0.3s ease;
 }
 
 /* Radio Group */
@@ -431,6 +523,43 @@
   }
   100% {
     transform: translateX(100%);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

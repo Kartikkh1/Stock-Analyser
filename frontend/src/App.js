@@ -9,16 +9,116 @@ function App() {
   const [statusMessage, setStatusMessage] = useState('');
   const [report, setReport] = useState('');
   const [error, setError] = useState('');
+  const [tickerError, setTickerError] = useState('');
+  const [isTickerValid, setIsTickerValid] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [companyInfo, setCompanyInfo] = useState(null);
   const wsRef = useRef(null);
+  const validationTimeoutRef = useRef(null);
 
-  // Cleanup WebSocket on unmount
+  // Cleanup WebSocket and timeout on unmount
   useEffect(() => {
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
       }
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Validate ticker format (client-side)
+  const validateTickerFormat = (ticker) => {
+    const trimmedTicker = ticker.trim().toUpperCase();
+    
+    // Empty ticker
+    if (!trimmedTicker) {
+      return { valid: false, error: '' };
+    }
+    
+    // Check if it contains only letters
+    if (!/^[A-Z]+$/.test(trimmedTicker)) {
+      return { valid: false, error: 'Ticker should contain only letters' };
+    }
+    
+    // Check length (most stock tickers are 1-5 characters)
+    if (trimmedTicker.length < 1 || trimmedTicker.length > 5) {
+      return { valid: false, error: 'Ticker should be 1-5 characters long' };
+    }
+    
+    return { valid: true, error: '' };
+  };
+
+  // Validate ticker with backend API
+  const validateTickerWithAPI = async (ticker) => {
+    const trimmedTicker = ticker.trim().toUpperCase();
+    
+    if (!trimmedTicker) {
+      return;
+    }
+    
+    setIsValidating(true);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/validate-ticker', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ticker: trimmedTicker }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.valid) {
+        setIsTickerValid(true);
+        setTickerError('');
+        setCompanyInfo(data);
+      } else {
+        setIsTickerValid(false);
+        setTickerError(data.message || 'Ticker symbol not found');
+        setCompanyInfo(null);
+      }
+    } catch (err) {
+      console.error('Ticker validation error:', err);
+      // On network error, fall back to format-only validation
+      setTickerError('Unable to verify ticker. Please check your connection.');
+      setIsTickerValid(false);
+      setCompanyInfo(null);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  // Handle ticker input change with debounced API validation
+  const handleTickerChange = (e) => {
+    const value = e.target.value.toUpperCase();
+    setStockTicker(value);
+    
+    // Clear previous timeout
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
+    
+    // Reset states
+    setCompanyInfo(null);
+    
+    // First, validate format
+    const formatValidation = validateTickerFormat(value);
+    
+    if (!formatValidation.valid) {
+      setTickerError(formatValidation.error);
+      setIsTickerValid(false);
+      return;
+    }
+    
+    // If format is valid, validate with API after debounce
+    setTickerError('');
+    validationTimeoutRef.current = setTimeout(() => {
+      validateTickerWithAPI(value);
+    }, 500); // 500ms debounce
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,6 +126,11 @@ function App() {
     // Validation
     if (!stockTicker.trim()) {
       setError('Please enter a stock ticker');
+      return;
+    }
+
+    if (!isTickerValid) {
+      setError('Please enter a valid stock ticker symbol');
       return;
     }
 
@@ -116,17 +221,49 @@ function App() {
                 <label htmlFor="stockTicker" className="label">
                   Stock Ticker Symbol
                 </label>
-                <input
-                  type="text"
-                  id="stockTicker"
-                  className="input"
-                  value={stockTicker}
-                  onChange={(e) => setStockTicker(e.target.value)}
-                  placeholder="e.g., AAPL, TSLA, MSFT"
-                  disabled={isAnalyzing}
-                  required
-                />
-                <small className="hint">Enter the stock ticker symbol you want to analyze</small>
+                <div className="input-wrapper">
+                  <input
+                    type="text"
+                    id="stockTicker"
+                    className={`input ${stockTicker && (isTickerValid ? 'input-valid' : tickerError ? 'input-invalid' : '')}`}
+                    value={stockTicker}
+                    onChange={handleTickerChange}
+                    placeholder="e.g., AAPL, TSLA, MSFT"
+                    disabled={isAnalyzing}
+                    maxLength={5}
+                    required
+                  />
+                  {stockTicker && !isValidating && (
+                    <span className={`validation-icon ${isTickerValid ? 'valid' : 'invalid'}`}>
+                      {isTickerValid ? '✓' : '✗'}
+                    </span>
+                  )}
+                  {isValidating && (
+                    <span className="validation-spinner"></span>
+                  )}
+                </div>
+                {tickerError && stockTicker && !isValidating && (
+                  <small className="error-hint">{tickerError}</small>
+                )}
+                {!tickerError && !stockTicker && (
+                  <small className="hint">Enter a 1-5 letter stock ticker symbol (e.g., AAPL, TSLA)</small>
+                )}
+                {isValidating && (
+                  <small className="hint">Validating ticker symbol...</small>
+                )}
+                {isTickerValid && companyInfo && !isValidating && (
+                  <div className="company-info">
+                    <small className="success-hint">
+                      ✓ Valid: <strong>{companyInfo.company_name}</strong>
+                    </small>
+                    {companyInfo.exchange && companyInfo.country && (
+                      <small className="info-hint">
+                        {companyInfo.exchange} • {companyInfo.country}
+                        {companyInfo.industry && ` • ${companyInfo.industry}`}
+                      </small>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
