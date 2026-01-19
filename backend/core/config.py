@@ -8,6 +8,12 @@ from stock_analyser.utils.logger import logger
 # Load environment variables
 load_dotenv()
 
+# CORS Configuration
+CORS_ORIGINS = [
+    "http://localhost",
+    "http://localhost:3000",  # React frontend development server
+]
+
 
 def get_finnhub_client():
     """
@@ -26,13 +32,3 @@ def get_finnhub_client():
     except Exception as e:
         logger.warning(f"Could not initialize Finnhub client: {e}")
         return None
-
-
-def get_cors_origins():
-    """
-    Get allowed CORS origins for the application.
-    """
-    return [
-        "http://localhost",
-        "http://localhost:3000",  # React frontend development server
-    ]

@@ -11,7 +11,7 @@ import uvicorn
 
 from backend.api import api_router
 from backend.api.routes.websocket import websocket_endpoint
-from backend.core import get_cors_origins
+from backend.core import CORS_ORIGINS
 from stock_analyser.utils.logger import logger
 
 # Create FastAPI application
@@ -24,7 +24,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=get_cors_origins(),
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
