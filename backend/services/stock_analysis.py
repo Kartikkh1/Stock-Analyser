@@ -12,8 +12,7 @@ from stock_analyser.utils.logger import logger
 async def run_stock_analysis(
     websocket: WebSocket,
     stock_ticker: str,
-    llm_choice: str,
-    cancel_event: asyncio.Event
+    llm_choice: str
 ):
     """
     Run stock analysis asynchronously and send updates via WebSocket.
@@ -22,7 +21,6 @@ async def run_stock_analysis(
         websocket: WebSocket connection to send updates
         stock_ticker: Stock ticker symbol to analyze
         llm_choice: LLM provider choice (openai, anthropic, gemini)
-        cancel_event: Event to signal cancellation
     """
     try:
         # Send initial status
@@ -34,9 +32,6 @@ async def run_stock_analysis(
             "progress": 0
         })
         
-        if cancel_event.is_set():
-            raise asyncio.CancelledError("Analysis cancelled by user")
-        
         # Load environment variables
         load_dotenv()
         
@@ -47,9 +42,6 @@ async def run_stock_analysis(
             "message": f"Gathering data for {stock_ticker}...",
             "progress": 10
         })
-        
-        if cancel_event.is_set():
-            raise asyncio.CancelledError("Analysis cancelled by user")
         
         # Create inputs for the crew
         inputs = {
@@ -65,9 +57,6 @@ async def run_stock_analysis(
             "progress": 30
         })
         
-        if cancel_event.is_set():
-            raise asyncio.CancelledError("Analysis cancelled by user")
-        
         # Run the analysis in a thread pool to avoid blocking
         loop = asyncio.get_event_loop()
         
@@ -82,18 +71,13 @@ async def run_stock_analysis(
             "progress": 50
         })
         
-        if cancel_event.is_set():
-            raise asyncio.CancelledError("Analysis cancelled by user")
-        
         # Run the crew kickoff in a thread pool
-        # Note: Thread pool tasks cannot be cancelled directly, but we check before/after
+        # Note: Thread pool tasks cannot be cancelled directly via task.cancel()
+        # Cancellation will occur at the next await point after this executor completes
         result = await loop.run_in_executor(
             None,
             lambda: stock_crew.crew().kickoff(inputs=inputs)
         )
-        
-        if cancel_event.is_set():
-            raise asyncio.CancelledError("Analysis cancelled by user")
         
         # Send status for report generation
         await websocket.send_json({
