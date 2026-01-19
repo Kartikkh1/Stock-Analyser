@@ -13,15 +13,28 @@ function App() {
   const [isTickerValid, setIsTickerValid] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [companyInfo, setCompanyInfo] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
   const wsRef = useRef(null);
   const validationTimeoutRef = useRef(null);
 
   // Cleanup WebSocket and timeout on unmount
   useEffect(() => {
     return () => {
-      if (wsRef.current) {
+      // Clear any pending cancel timeout
+      if (wsRef.current && wsRef.current.cancelTimeout) {
+        clearTimeout(wsRef.current.cancelTimeout);
+      }
+      
+      // Send cancel message if WebSocket is still open
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        try {
+          wsRef.current.send(JSON.stringify({ action: 'cancel' }));
+        } catch (error) {
+          console.error('Error sending cancel on unmount:', error);
+        }
         wsRef.current.close();
       }
+      
       if (validationTimeoutRef.current) {
         clearTimeout(validationTimeoutRef.current);
       }
@@ -177,6 +190,20 @@ function App() {
           setError(data.message || 'An error occurred during analysis');
           setIsAnalyzing(false);
           ws.close();
+        } else if (data.status === 'cancelled') {
+          console.log('Received cancellation confirmation from server');
+          setStatusMessage('Analysis cancelled successfully');
+          setIsAnalyzing(false);
+          setIsCancelling(false);
+          setProgress(0);
+          
+          // Clear the safety timeout since we got proper confirmation
+          if (ws.cancelTimeout) {
+            clearTimeout(ws.cancelTimeout);
+          }
+          
+          // Now close the WebSocket after receiving confirmation
+          ws.close();
         }
       }
     };
@@ -187,21 +214,55 @@ function App() {
       setIsAnalyzing(false);
     };
 
-    ws.onclose = () => {
-      console.log('WebSocket closed');
-      if (isAnalyzing && !report) {
-        setError('Connection closed unexpectedly');
-        setIsAnalyzing(false);
+    ws.onclose = (event) => {
+      console.log('WebSocket closed', event);
+      
+      // Clear any pending cancel timeout
+      if (ws.cancelTimeout) {
+        clearTimeout(ws.cancelTimeout);
       }
     };
   };
 
   const handleCancel = () => {
-    if (wsRef.current) {
-      wsRef.current.close();
+    setIsCancelling(true);
+    setStatusMessage('Cancelling analysis...');
+    
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      // Send cancel message to server
+      try {
+        wsRef.current.send(JSON.stringify({ action: 'cancel' }));
+        console.log('Cancel message sent to server, waiting for confirmation...');
+        
+        // The WebSocket will be closed when we receive the "cancelled" status from server
+        // or after a safety timeout to prevent hanging
+        const safetyTimeout = setTimeout(() => {
+          console.log('Safety timeout: forcing WebSocket close');
+          if (wsRef.current) {
+            wsRef.current.close();
+          }
+          setIsCancelling(false);
+          setIsAnalyzing(false);
+          setProgress(0);
+        }, 3000); // 3 second safety timeout
+        
+        // Store timeout so we can clear it when server responds
+        wsRef.current.cancelTimeout = safetyTimeout;
+      } catch (error) {
+        console.error('Error sending cancel message:', error);
+        // Close anyway if sending fails
+        if (wsRef.current) {
+          wsRef.current.close();
+        }
+        setIsCancelling(false);
+        setIsAnalyzing(false);
+        setProgress(0);
+      }
+    } else {
+      setIsCancelling(false);
+      setIsAnalyzing(false);
+      setProgress(0);
     }
-    setIsAnalyzing(false);
-    setStatusMessage('Analysis cancelled');
   };
 
   return (
@@ -331,8 +392,16 @@ function App() {
                     type="button"
                     onClick={handleCancel}
                     className="button button-secondary"
+                    disabled={isCancelling}
                   >
-                    Cancel Analysis
+                    {isCancelling ? (
+                      <>
+                        <span className="button-spinner"></span>
+                        Cancelling...
+                      </>
+                    ) : (
+                      'Cancel Analysis'
+                    )}
                   </button>
                 )}
               </div>
