@@ -14,7 +14,30 @@ def _get_finnhub_client() -> finnhub.Client | None:
 
 
 def _no_key_error() -> dict[str, Any]:
-    return {"error": "FINNHUB_API_KEY not set. Finnhub tools are unavailable."}
+    return {
+        "error": "FINNHUB_API_KEY not set. DO NOT retry this tool.",
+        "action": "Skip this data source and proceed with other available information."
+    }
+
+
+def _handle_error(tool_name: str, symbol: str, e: Exception) -> dict[str, Any]:
+    """Return LLM-friendly error with clear instruction not to retry."""
+    error_str = str(e)
+    
+    # 403 = access denied (premium feature or invalid permissions)
+    if "403" in error_str:
+        return {
+            "error": f"Access denied for {tool_name}. This requires a Finnhub premium subscription.",
+            "symbol": symbol,
+            "action": "DO NOT retry this tool. Skip this data and continue with other sources."
+        }
+    
+    # Generic error
+    return {
+        "error": f"{tool_name} failed: {error_str}",
+        "symbol": symbol,
+        "action": "DO NOT retry this tool with the same parameters. Try alternative data sources."
+    }
 
 
 @tool("get_real_time_quote")
@@ -36,7 +59,7 @@ def get_real_time_quote(symbol: str) -> dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Finnhub quote error for {symbol}: {e}", exc_info=True)
-        return {"error": str(e)}
+        return _handle_error("get_real_time_quote", symbol, e)
 
 
 @tool("get_historical_prices")
@@ -66,7 +89,7 @@ def get_historical_prices(
         }
     except Exception as e:
         logger.error(f"Finnhub stock_candles error for {symbol}: {e}", exc_info=True)
-        return {"error": str(e)}
+        return _handle_error("get_historical_prices", symbol, e)
 
 
 @tool("get_fundamental_data")
@@ -98,7 +121,7 @@ def get_fundamental_data(symbol: str, metric_type: str = "all") -> dict[str, Any
         return {k: v for k, v in key_metrics.items() if v is not None}
     except Exception as e:
         logger.error(f"Finnhub fundamentals error for {symbol}: {e}", exc_info=True)
-        return {"error": str(e)}
+        return _handle_error("get_fundamental_data", symbol, e)
 
 
 @tool("get_company_news")
@@ -122,7 +145,7 @@ def get_company_news(symbol: str, from_date: str, to_date: str) -> dict[str, Any
         return {"symbol": symbol, "count": len(news), "articles": summarized}
     except Exception as e:
         logger.error(f"Finnhub company_news error for {symbol}: {e}", exc_info=True)
-        return {"error": str(e)}
+        return _handle_error("get_company_news", symbol, e)
 
 
 @tool("get_news_sentiment")
@@ -151,7 +174,7 @@ def get_news_sentiment(symbol: str) -> dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Finnhub news_sentiment error for {symbol}: {e}", exc_info=True)
-        return {"error": str(e)}
+        return _handle_error("get_news_sentiment", symbol, e)
 
 
 @tool("analyst_rating")
@@ -167,7 +190,7 @@ def analyst_rating(symbol: str) -> dict[str, Any]:
         return {"symbol": symbol, "recommendations": recent}
     except Exception as e:
         logger.error(f"Finnhub recommendation_trends error for {symbol}: {e}", exc_info=True)
-        return {"error": str(e)}
+        return _handle_error("analyst_rating", symbol, e)
 
 
 def get_finnhub_tools() -> list[Any]:

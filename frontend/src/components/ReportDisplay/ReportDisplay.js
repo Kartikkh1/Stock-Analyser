@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import './ReportDisplay.css';
 
 const ReportDisplay = ({ report, stockTicker, llmChoice }) => {
@@ -27,8 +28,8 @@ const ReportDisplay = ({ report, stockTicker, llmChoice }) => {
           Download Report
         </button>
       </div>
-      <div className="report-content">
-        <pre>{report}</pre>
+      <div className="report-content markdown-body">
+        <ReactMarkdown>{report}</ReactMarkdown>
       </div>
     </div>
   );
