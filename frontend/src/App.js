@@ -7,8 +7,6 @@ import ReportDisplay from './components/ReportDisplay/ReportDisplay';
 import { useTickerValidation } from './hooks/useTickerValidation';
 import { useStockAnalysis } from './hooks/useStockAnalysis';
 import { useLLMProvider } from './hooks/useLLMProvider';
-import { ERROR_MESSAGES } from './constants/config';
-
 function App() {
   // Custom hooks for state management
   const tickerValidation = useTickerValidation();

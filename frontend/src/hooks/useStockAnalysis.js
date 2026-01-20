@@ -2,17 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { createAnalysisWebSocket, cancelAnalysis, closeWebSocket } from '../utils/websocket';
 import { ERROR_MESSAGES } from '../constants/config';
 
-/**
- * Custom hook for stock analysis with WebSocket connection management
- * 
- * Manages the analysis lifecycle including WebSocket connection,
- * progress tracking, cancellation, and cleanup.
- * 
- * @param {Object} options - Hook configuration
- * @param {string} options.ticker - Stock ticker symbol
- * @param {string} options.llmProvider - LLM provider choice
- * @returns {Object} Analysis state and handlers
- */
 export const useStockAnalysis = ({ ticker, llmProvider }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
