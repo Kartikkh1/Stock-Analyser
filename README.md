@@ -56,12 +56,15 @@ cd ..
 Create a `.env` file in the root directory with your API keys:
 
 ```env
+# Required: Finnhub API for stock data validation
 FINNHUB_API_KEY="your_finnhub_api_key_here"
-OPENAI_API_KEY="your_openai_api_key_here"         # Required for OpenAI
-ANTHROPIC_API_KEY="your_anthropic_api_key_here"   # Required for Anthropic
-GEMINI_API_KEY="your_gemini_api_key_here"         # Required for Google Gemini
 
-# Optional: Enable test mode for quick testing without expensive LLM calls
+# Required: At least ONE of the following LLM API keys (based on your choice)
+OPENAI_API_KEY="your_openai_api_key_here"         # If using OpenAI
+ANTHROPIC_API_KEY="your_anthropic_api_key_here"   # If using Anthropic
+GEMINI_API_KEY="your_gemini_api_key_here"         # If using Google Gemini
+
+# Optional: Enable test mode for quick testing without LLM API calls
 TEST_MODE=false
 ```
 
