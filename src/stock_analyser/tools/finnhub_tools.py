@@ -1,174 +1,122 @@
 import os
-from typing import Optional
-from pydantic import PrivateAttr
-
+from typing import Any
 import finnhub
-from pydantic import Field
-from crewai.tools import BaseTool
-
+from crewai.tools import tool
 from stock_analyser.utils.logger import logger
 
 
-class FinnhubAPITools(BaseTool):
-    name: str = "Finnhub Financial Market Data Tool"
-    description: str = (
-        "Provides access to Finnhub financial market data. "
-        "Capabilities include fetching historical stock price candles (OHLCV), "
-        "company fundamental financial data, real-time stock quotes, "
-        "company-specific news within a date range, and aggregated news sentiment "
-        "for publicly traded companies. "
-        "Use this tool whenever authoritative market, pricing, fundamentals, "
-        "or news data is required."
-    )
+def _get_finnhub_client() -> finnhub.Client | None:
+    """Create a Finnhub client using FINNHUB_API_KEY (or return None if missing)."""
+    api_key = os.getenv("FINNHUB_API_KEY")
+    if not api_key:
+        return None
+    return finnhub.Client(api_key=api_key)
 
-    # Secret – excluded from prompts, schemas, and logs
-    api_key: Optional[str] = Field(default=None, exclude=True, repr=False)
-    # Declare the client as a private attribute
-    _finnhub_client: finnhub.Client = PrivateAttr()
-    def __init__(self, api_key: str | None = None):
-        super().__init__()
 
-        self.api_key = api_key or os.getenv("FINNHUB_API_KEY")
-        if not self.api_key:
-            logger.error(
-                "Finnhub API key not provided. "
-                "Set FINNHUB_API_KEY environment variable or pass it directly."
-            )
-            raise ValueError("Finnhub API key not provided.")
+def _no_key_error() -> dict[str, Any]:
+    return {"error": "FINNHUB_API_KEY not set. Finnhub tools are unavailable."}
 
-        self._finnhub_client = finnhub.Client(api_key=self.api_key)
-        logger.info("FinnhubAPITools initialized successfully.")
 
-    def _run(self, tool_name: str, **kwargs):
-        """
-        Internal dispatcher for Finnhub operations.
-        This method is not exposed to the LLM.
-        """
-        logger.info(f"Executing Finnhub tool operation: {tool_name} with args: {kwargs}")
+@tool("get_real_time_quote")
+def get_real_time_quote(symbol: str) -> dict[str, Any]:
+    """Get a real-time quote for `symbol` using Finnhub (quote endpoint)."""
+    client = _get_finnhub_client()
+    if not client:
+        return _no_key_error()
+    try:
+        return client.quote(symbol)
+    except Exception as e:
+        logger.error(f"Finnhub quote error for {symbol}: {e}", exc_info=True)
+        return {"error": str(e)}
 
-        if tool_name == "get_historical_prices":
-            return self._get_historical_prices(**kwargs)
-        elif tool_name == "get_fundamental_data":
-            return self._get_fundamental_data(**kwargs)
-        elif tool_name == "get_real_time_quote":
-            return self._get_real_time_quote(**kwargs)
-        elif tool_name == "get_company_news":
-            return self._get_company_news(**kwargs)
-        elif tool_name == "get_news_sentiment":
-            return self._get_news_sentiment(**kwargs)
 
-        logger.warning(f"Unknown Finnhub tool operation requested: {tool_name}")
-        raise ValueError(f"Unknown tool name: {tool_name}")
+@tool("get_historical_prices")
+def get_historical_prices(symbol: str, resolution: str, from_ts: int, to_ts: int) -> dict[str, Any]:
+    """
+    Get historical OHLCV candles for `symbol` from Finnhub.
 
-    def _get_historical_prices(self, symbol: str, resolution: str, _from: int, to: int):
-        """
-        Fetch historical OHLCV price data for a stock symbol.
+    - `resolution`: 1, 5, 15, 30, 60, D, W, M
+    - `from_ts` / `to_ts`: UNIX timestamps (seconds)
+    """
+    client = _get_finnhub_client()
+    if not client:
+        return _no_key_error()
+    try:
+        return client.stock_candles(symbol, resolution, from_ts, to_ts)
+    except Exception as e:
+        logger.error(f"Finnhub stock_candles error for {symbol}: {e}", exc_info=True)
+        return {"error": str(e)}
 
-        Args:
-            symbol: Stock ticker symbol (e.g., AAPL)
-            resolution: Candle resolution (1, 5, 15, 30, 60, D, W, M)
-            _from: UNIX timestamp for start of range
-            to: UNIX timestamp for end of range
-        """
-        logger.debug(
-            f"Fetching historical prices for {symbol} from {_from} to {to} "
-            f"with resolution {resolution}"
-        )
-        try:
-            return self._finnhub_client.stock_candles(symbol, resolution, _from, to)
-        except finnhub.exceptions.FinnhubAPIException as e:
-            logger.error(
-                f"Finnhub API error fetching historical prices for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
-        except Exception as e:
-            logger.error(
-                f"Unexpected error fetching historical prices for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
 
-    def _get_fundamental_data(self, symbol: str, metric_type: str):
-        """
-        Fetch fundamental financial data for a company.
+@tool("get_fundamental_data")
+def get_fundamental_data(symbol: str, metric_type: str = "all") -> dict[str, Any]:
+    """Get company basic fundamentals for `symbol` from Finnhub (company_basic_financials)."""
+    client = _get_finnhub_client()
+    if not client:
+        return _no_key_error()
+    try:
+        return client.company_basic_financials(symbol, metric_type)
+    except Exception as e:
+        logger.error(f"Finnhub fundamentals error for {symbol}: {e}", exc_info=True)
+        return {"error": str(e)}
 
-        Args:
-            symbol: Stock ticker symbol
-            metric_type: Financial metric category
-        """
-        logger.debug(f"Fetching fundamental data for {symbol} ({metric_type})")
-        try:
-            return self._finnhub_client.company_basic_financials(symbol, metric_type)
-        except finnhub.exceptions.FinnhubAPIException as e:
-            logger.error(
-                f"Finnhub API error fetching fundamental data for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
-        except Exception as e:
-            logger.error(
-                f"Unexpected error fetching fundamental data for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
 
-    def _get_real_time_quote(self, symbol: str):
-        """
-        Fetch a real-time market quote for a stock symbol.
-        """
-        logger.debug(f"Fetching real-time quote for {symbol}")
-        try:
-            return self._finnhub_client.quote(symbol)
-        except finnhub.exceptions.FinnhubAPIException as e:
-            logger.error(
-                f"Finnhub API error fetching real-time quote for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
-        except Exception as e:
-            logger.error(
-                f"Unexpected error fetching real-time quote for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
+@tool("get_company_news")
+def get_company_news(symbol: str, from_date: str, to_date: str) -> dict[str, Any]:
+    """
+    Get company news for `symbol` from Finnhub.
 
-    def _get_company_news(self, symbol: str, _from: str, to: str):
-        """
-        Fetch company-related news articles within a date range.
-        """
-        logger.debug(f"Fetching company news for {symbol} from {_from} to {to}")
-        try:
-            return self._finnhub_client.company_news(symbol, _from, to)
-        except finnhub.exceptions.FinnhubAPIException as e:
-            logger.error(
-                f"Finnhub API error fetching company news for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
-        except Exception as e:
-            logger.error(
-                f"Unexpected error fetching company news for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
+    - `from_date` / `to_date`: YYYY-MM-DD
+    """
+    client = _get_finnhub_client()
+    if not client:
+        return _no_key_error()
+    try:
+        return client.company_news(symbol, from_date, to_date)
+    except Exception as e:
+        logger.error(f"Finnhub company_news error for {symbol}: {e}", exc_info=True)
+        return {"error": str(e)}
 
-    def _get_news_sentiment(self, symbol: str):
-        """
-        Fetch aggregated news sentiment for a company.
-        """
-        logger.debug(f"Fetching news sentiment for {symbol}")
-        try:
-            return self._finnhub_client.news_sentiment(symbol)
-        except finnhub.exceptions.FinnhubAPIException as e:
-            logger.error(
-                f"Finnhub API error fetching news sentiment for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
-        except Exception as e:
-            logger.error(
-                f"Unexpected error fetching news sentiment for {symbol}: {e}",
-                exc_info=True,
-            )
-            return {"error": str(e)}
+
+@tool("get_news_sentiment")
+def get_news_sentiment(symbol: str) -> dict[str, Any]:
+    """Get aggregated news sentiment for `symbol` from Finnhub (news_sentiment)."""
+    client = _get_finnhub_client()
+    if not client:
+        return _no_key_error()
+    try:
+        return client.news_sentiment(symbol)
+    except Exception as e:
+        logger.error(f"Finnhub news_sentiment error for {symbol}: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@tool("analyst_rating")
+def analyst_rating(symbol: str) -> dict[str, Any]:
+    """
+    Get analyst rating proxy for `symbol` from Finnhub.
+
+    Finnhub exposes this as recommendation trends (recommendation_trends).
+    """
+    client = _get_finnhub_client()
+    if not client:
+        return _no_key_error()
+    try:
+        return client.recommendation_trends(symbol)
+    except Exception as e:
+        logger.error(f"Finnhub recommendation_trends error for {symbol}: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+def get_finnhub_tools() -> list[Any]:
+    """Return all Finnhub tools (atomic). Raises if key missing to match existing pattern."""
+    if not os.getenv("FINNHUB_API_KEY"):
+        raise ValueError("FINNHUB_API_KEY not provided.")
+    return [
+        get_real_time_quote,
+        get_historical_prices,
+        get_fundamental_data,
+        get_company_news,
+        get_news_sentiment,
+        analyst_rating,
+    ]

@@ -3,7 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from crewai_tools import SerperDevTool
-from .tools.finnhub_tools import FinnhubAPITools
+from .tools.finnhub_tools import get_finnhub_tools
 from .tools.visualization_tools import VisualizationTools
 from .tools.technical_analysis_tools import TechnicalAnalysisTools
 from .utils.logger import logger
@@ -20,10 +20,10 @@ class StockAnalyser():
     serper_dev_tool = SerperDevTool()
     finnhub_tools = None
     try:
-        finnhub_tools = FinnhubAPITools()
-        logger.info("FinnhubAPITools initialized successfully.")
+        finnhub_tools = get_finnhub_tools()
+        logger.info("Finnhub tools initialized successfully.")
     except ValueError as e:
-        logger.error(f"Error initializing FinnhubAPITools: {e}", exc_info=True)
+        logger.error(f"Error initializing Finnhub tools: {e}", exc_info=True)
     visualization_tools = VisualizationTools()
     technical_analysis_tools = TechnicalAnalysisTools()
 
@@ -36,7 +36,7 @@ class StockAnalyser():
     def researcher(self) -> Agent:
         researcher_tools = [self.serper_dev_tool]
         if self.finnhub_tools:
-            researcher_tools.append(self.finnhub_tools)
+            researcher_tools.extend(self.finnhub_tools)
         return Agent(
             config=self.agents_config['researcher'], # type: ignore[index]
             llm=self.selected_llm_type,
@@ -48,7 +48,7 @@ class StockAnalyser():
     def reporter(self) -> Agent:
         reporter_tools = [self.serper_dev_tool, self.visualization_tools]
         if self.finnhub_tools:
-            reporter_tools.append(self.finnhub_tools)
+            reporter_tools.extend(self.finnhub_tools)
         return Agent(
             config=self.agents_config['reporter'], # type: ignore[index]
             llm=self.selected_llm_type,
@@ -60,7 +60,7 @@ class StockAnalyser():
     def technical_analyst(self) -> Agent:
         technical_analyst_tools = [self.technical_analysis_tools]
         if self.finnhub_tools:
-            technical_analyst_tools.append(self.finnhub_tools)
+            technical_analyst_tools.extend(self.finnhub_tools)
         return Agent(
             config=self.agents_config['technical_analyst'], # type: ignore[index]
             llm=self.selected_llm_type,
@@ -72,7 +72,7 @@ class StockAnalyser():
     def fundamental_analyst(self) -> Agent:
         fundamental_analyst_tools = []
         if self.finnhub_tools:
-            fundamental_analyst_tools.append(self.finnhub_tools)
+            fundamental_analyst_tools.extend(self.finnhub_tools)
         return Agent(
             config=self.agents_config['fundamental_analyst'], # type: ignore[index]
             llm=self.selected_llm_type,
@@ -84,7 +84,7 @@ class StockAnalyser():
     def sentiment_analyst(self) -> Agent:
         sentiment_analyst_tools = []
         if self.finnhub_tools:
-            sentiment_analyst_tools.append(self.finnhub_tools)
+            sentiment_analyst_tools.extend(self.finnhub_tools)
         return Agent(
             config=self.agents_config['sentiment_analyst'], # type: ignore[index]
             llm=self.selected_llm_type,
