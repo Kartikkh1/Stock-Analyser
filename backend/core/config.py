@@ -14,6 +14,33 @@ CORS_ORIGINS = [
     "http://localhost:3000",  # React frontend development server
 ]
 
+# LLM Model Mapping
+# Maps frontend LLM choice to actual model names that CrewAI expects
+LLM_MODEL_MAPPING = {
+    "openai": "gpt-4o-mini",           # OpenAI's latest GPT-4 model
+    "anthropic": "claude-3-5-sonnet-20241022",  # Anthropic's Claude 3.5 Sonnet
+    "google": "gemini/gemini-1.5-flash",        # Google's Gemini model
+}
+
+
+def get_llm_model(llm_choice: str) -> str:
+    """
+    Get the actual model name from the LLM choice.
+    
+    Args:
+        llm_choice: The LLM provider choice (e.g., "openai", "anthropic", "google")
+    
+    Returns:
+        The actual model name to use with CrewAI
+    """
+    model = LLM_MODEL_MAPPING.get(llm_choice.lower())
+    if not model:
+        logger.warning(f"Unknown LLM choice '{llm_choice}', defaulting to OpenAI")
+        model = LLM_MODEL_MAPPING["openai"]
+    
+    logger.info(f"LLM choice '{llm_choice}' mapped to model '{model}'")
+    return model
+
 
 def get_finnhub_client():
     """

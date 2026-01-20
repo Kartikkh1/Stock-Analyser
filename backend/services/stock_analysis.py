@@ -1,12 +1,20 @@
 """Stock analysis service for running analysis tasks."""
 
 import asyncio
+import os
 from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import WebSocket
 
 from stock_analyser.crew import StockAnalyser
 from stock_analyser.utils.logger import logger
+from backend.core.config import get_finnhub_client, get_llm_model
+
+# Check if in test mode
+TEST_MODE = os.getenv("TEST_MODE", "false").lower() == "true"
+
+if TEST_MODE:
+    logger.info("TEST_MODE enabled - will use TestCrew when analysis starts")
 
 
 async def run_stock_analysis(
@@ -60,8 +68,18 @@ async def run_stock_analysis(
         # Run the analysis in a thread pool to avoid blocking
         loop = asyncio.get_event_loop()
         
-        # Create the crew
-        stock_crew = StockAnalyser(llm_choice, stock_name=inputs['name'])
+        # Map LLM choice to actual model name
+        llm_model = get_llm_model(llm_choice)
+        
+        # Create the crew (test or production)
+        if TEST_MODE:
+            # Lazy import - only import when needed
+            from backend.test_crew import TestCrew
+            logger.info(f"Creating TestCrew for {stock_ticker}")
+            stock_crew = TestCrew(llm_model)
+        else:
+            logger.info(f"Creating StockAnalyser for {stock_ticker}")
+            stock_crew = StockAnalyser(llm_model, stock_name=inputs['name'])
         
         # Send status for sentiment analysis
         await websocket.send_json({
@@ -87,13 +105,24 @@ async def run_stock_analysis(
             "progress": 80
         })
         
-        # Read the generated report file
-        report_path = f'output/{stock_ticker}_{llm_choice}_report.md'
-        try:
-            with open(report_path, 'r') as f:
-                report_content = f.read()
-        except FileNotFoundError:
-            report_content = "Report file not found. Analysis may have encountered an issue."
+        # Get the report content
+        if TEST_MODE:
+            # In test mode, use the crew result directly
+            report_content = f"""
+                # Test Mode Stock Analysis Report
+                ## Ticker: {stock_ticker}
+                ## LLM: {llm_model}
+                ### Test Result: {str(result)}
+            """
+            report_path = None  # No file saved in test mode
+        else:
+            # In production mode, read the generated report file
+            report_path = f'output/{stock_ticker}_{llm_model}_report.md'
+            try:
+                with open(report_path, 'r') as f:
+                    report_content = f.read()
+            except FileNotFoundError:
+                report_content = "Report file not found. Analysis may have encountered an issue."
         
         # Send completion status with the report
         await websocket.send_json({
