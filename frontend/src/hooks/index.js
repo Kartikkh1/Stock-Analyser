@@ -6,3 +6,4 @@
 
 export { useTickerValidation } from './useTickerValidation';
 export { useStockAnalysis } from './useStockAnalysis';
+export { useLLMProvider } from './useLLMProvider';

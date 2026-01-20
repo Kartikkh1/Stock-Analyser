@@ -1,0 +1,177 @@
+/* Ticker Input Group */
+.ticker-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ticker-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-label {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.ticker-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  padding-right: 3rem;
+  font-size: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--card-background);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.ticker-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.ticker-input:disabled {
+  background: var(--background);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ticker-input-valid {
+  border-color: var(--success-color);
+}
+
+.ticker-input-valid:focus {
+  border-color: var(--success-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.ticker-input-invalid {
+  border-color: var(--error-color);
+}
+
+.ticker-input-invalid:focus {
+  border-color: var(--error-color);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.ticker-validation-icon {
+  position: absolute;
+  right: 1rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.ticker-validation-icon.valid {
+  color: var(--success-color);
+  animation: scaleIn 0.3s ease;
+}
+
+.ticker-validation-icon.invalid {
+  color: var(--error-color);
+  animation: shake 0.3s ease;
+}
+
+.ticker-validation-spinner {
+  position: absolute;
+  right: 1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.ticker-hint {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.ticker-error-hint {
+  color: var(--error-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ticker-success-hint {
+  color: var(--success-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ticker-info-hint {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.ticker-company-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+/* Animations */
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

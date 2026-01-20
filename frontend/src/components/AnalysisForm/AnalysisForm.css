@@ -1,0 +1,66 @@
+/* Form Card */
+.analysis-form-card {
+  animation-delay: 0.1s;
+}
+
+/* Form */
+.analysis-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Alerts */
+.analysis-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+}
+
+.alert-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.analysis-alert-icon {
+  font-size: 1.25rem;
+}
+
+/* Buttons */
+.analysis-button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.analysis-button-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .analysis-button-group {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
+}

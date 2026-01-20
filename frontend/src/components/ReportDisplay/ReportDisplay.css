@@ -1,0 +1,76 @@
+/* Report Card */
+.report-card {
+  animation-delay: 0.3s;
+}
+
+/* Report Header */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.report-download-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  background: var(--primary-color);
+  color: white;
+}
+
+.report-download-button:hover {
+  background: var(--primary-hover);
+}
+
+/* Report Content */
+.report-content {
+  background: var(--background);
+  border-radius: var(--radius-sm);
+  padding: 1.5rem;
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+}
+
+.report-content pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Scrollbar Styles */
+.report-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.report-content::-webkit-scrollbar-track {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.report-content::-webkit-scrollbar-thumb {
+  background: var(--secondary-color);
+  border-radius: 4px;
+}
+
+.report-content::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .report-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .report-header .button {
+    width: 100%;
+  }
+}

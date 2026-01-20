@@ -1,0 +1,63 @@
+/* LLM Selector Group */
+.llm-selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.llm-selector-label {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+/* Radio Group */
+.llm-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.llm-radio-label {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.llm-radio-label:hover {
+  border-color: var(--primary-color);
+  background: rgba(79, 70, 229, 0.02);
+}
+
+.llm-radio-label input[type="radio"] {
+  margin-right: 1rem;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--primary-color);
+}
+
+.llm-radio-label input[type="radio"]:disabled {
+  cursor: not-allowed;
+}
+
+.llm-radio-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.llm-radio-text strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.llm-radio-text small {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
