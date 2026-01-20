@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from stock_analyser.crew import StockAnalyser
 from stock_analyser.utils.logger import logger
+from backend.core.config import get_llm_model
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
@@ -25,7 +26,8 @@ def run(stock_ticker: str, llm_choice: str):
     }
 
     try:
-        StockAnalyser(llm_choice, stock_name=inputs['name']).crew().kickoff(inputs=inputs)
+        llm_model = get_llm_model(llm_choice)
+        StockAnalyser(llm_model, stock_name=inputs['name']).crew().kickoff(inputs=inputs)
         logger.info("Stock Analyser crew successfully kicked off.")
     except Exception as e:
         logger.error(f"An error occurred while running the crew: {e}", exc_info=True)

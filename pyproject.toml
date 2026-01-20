@@ -12,11 +12,11 @@ dependencies = [
     "scikit-learn",
     "python-dotenv",
     "TA-Lib",
-    "crewai[google-genai]",
+    "crewai[anthropic,google-genai,openai]",
     "crewai_tools",
     "anthropic",
     "openai",
-    "fastapi[standard]"
+    "fastapi[standard]",
 ]
 
 [build-system]
