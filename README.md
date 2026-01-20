@@ -109,6 +109,14 @@ The system orchestrates several specialized AI agents:
 - **Cancellation Support**: Stop analysis mid-process if needed
 - **Report Display**: Formatted markdown rendering with download option
 
+## Things to do (good first contributions)
+
+- [ ] **Add caching for the ticker validation API** (avoid repeated Finnhub calls; cache positive/negative results with a short TTL).
+- [ ] **Fix the Anthropic model name** (currently returns a 404; update the model mapping / config so Anthropic requests succeed).
+- [ ] **Persist the UI list across refresh** (keep the user’s tickers / recent analyses after page reload; e.g., local storage or backend persistence).
+- [ ] **Improve UI design** (layout, typography, spacing, accessibility, and overall polish).
+- [ ] **Add interactive reporting & graphs** (visualize trends like price history, moving averages, volume, sentiment over time; make charts part of the report view).
+
 ### LLM Model Mapping
 
 The system automatically maps LLM provider choices to specific models (configured in `backend/core/config.py`):
@@ -143,25 +151,44 @@ Enable `TEST_MODE=true` in your `.env` file for quick end-to-end testing:
 
 ```
 stock_annalyzer/
-├── app.py                      # FastAPI application entry point
-├── frontend/                   # React frontend
-│   └── src/
-│       ├── App.js             # Main React component
-│       └── App.css            # Styles
-├── backend/                    # Backend modules
+├── app.py                         # FastAPI application entry point
+├── pyproject.toml                 # Python deps (uv)
+├── uv.lock                        # Locked dependency versions
+├── README.md                      # Main project docs
+├── backend/                       # FastAPI backend modules
 │   ├── api/
 │   │   └── routes/
-│   │       ├── validation.py  # Ticker validation endpoint
-│   │       └── websocket.py   # WebSocket handler
-│   ├── services/
-│   │   └── stock_analysis.py  # Analysis logic
+│   │       ├── validation.py      # Ticker validation endpoint
+│   │       └── websocket.py       # WebSocket handler
+│   ├── core/
+│   │   └── config.py              # Configuration & initialization
 │   ├── models/
-│   │   └── requests.py        # Pydantic models
-│   └── core/
-│       └── config.py          # Configuration & LLM mapping
-├── src/stock_analyser/         # Core analysis modules
-│   ├── crew.py                # Main analysis crew
-│   ├── agents.py              # AI agents definition
-│   └── tools/                 # Analysis tools
-└── output/                     # Generated reports
+│   │   └── requests.py            # Pydantic models
+│   ├── services/
+│   │   └── stock_analysis.py      # Analysis orchestration
+│   ├── test_crew.py               # Lightweight test crew
+│   └── README.md
+├── src/
+│   └── stock_analyser/            # Core analysis package
+│       ├── main.py
+│       ├── crew.py
+│       ├── config/
+│       │   ├── agents.yaml
+│       │   └── tasks.yaml
+│       ├── tools/
+│       │   ├── finnhub_tools.py
+│       │   ├── technical_analysis_tools.py
+│       │   └── visualization_tools.py
+│       └── utils/
+│           └── logger.py
+└── frontend/                      # React frontend (Create React App)
+    ├── package.json
+    ├── public/
+    │   └── index.html
+    └── src/
+        ├── App.js
+        ├── App.css
+        ├── components/            # UI components (form, report, etc.)
+        ├── hooks/                 # UI hooks (validation, analysis flow)
+        └── utils/                 # API + websocket helpers
 ```
