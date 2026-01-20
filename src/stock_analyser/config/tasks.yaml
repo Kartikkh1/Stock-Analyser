@@ -44,7 +44,7 @@ chart_pattern_analysis_task:
 fundamental_analysis_task:
   description: >
     Perform a deep fundamental analysis for ticker symbol {name}.
-    Retrieve comprehensive financial statements (income statement, balance sheet, cash flow statement) for the last 5 years
+    Retrieve comprehensive financial statements (income statement, balance sheet, cash flow statement) for the last 2 years
     using the Finnhub API. Calculate and interpret key financial ratios such as P/E ratio, EPS, Debt-to-Equity,
     Current Ratio, and Return on Equity. Provide an overall assessment of the company's financial health and intrinsic value.
     The current year is {current_year}.
@@ -62,7 +62,7 @@ fundamental_analysis_task:
 technical_analyst_task:
   description: >
     Perform a comprehensive technical analysis for the ticker symbol {name}.
-    Utilize Finnhub data to retrieve historical stock prices and calculate
+    If Finnhub data is available, use it to retrieve historical stock prices, else use web search to find historical prices and calculate
     key technical indicators such as Moving Averages (SMA, EMA), Relative Strength Index (RSI),
     Moving Average Convergence Divergence (MACD), Bollinger Bands, Ichimoku Cloud, Fibonacci Retracements, and Average True Range (ATR).
     Interpret these indicators to identify trends, momentum, and potential buy/sell signals.
