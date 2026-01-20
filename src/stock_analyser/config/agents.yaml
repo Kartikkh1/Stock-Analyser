@@ -49,12 +49,3 @@ sentiment_analyst:
     You are a highly skilled sentiment analyst, adept at interpreting textual data
     from news, social media, and financial forums to extract crucial market sentiment.
     Your analysis helps in understanding the emotional drivers behind stock movements.
-#######################################################################################################################
-# LLM Configurations
-llm_configs:
-  anthropic:
-    llm: anthropic/claude-sonnet-4-5-20250929
-  gemini:
-    llm: google/gemini-2.5-flash
-  openai:
-    llm: openai/gpt-5

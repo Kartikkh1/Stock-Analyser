@@ -17,9 +17,9 @@ CORS_ORIGINS = [
 # LLM Model Mapping
 # Maps frontend LLM choice to actual model names that CrewAI expects
 LLM_MODEL_MAPPING = {
-    "openai": "gpt-4o-mini",           # OpenAI's latest GPT-4 model
-    "anthropic": "claude-3-5-sonnet-20241022",  # Anthropic's Claude 3.5 Sonnet
-    "google": "gemini/gemini-1.5-flash",        # Google's Gemini model
+    "openai": "gpt-4o",           # OpenAI's latest GPT-4 model
+    "anthropic": "claude-3-5-sonnet-20240620",  # Anthropic's Claude 3.5 Sonnet (June 2024)
+    "google": "gemini-2.5-pro",        # Google's Gemini model
 }
 
 

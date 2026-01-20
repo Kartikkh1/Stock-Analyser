@@ -39,7 +39,7 @@ class StockAnalyser():
             researcher_tools.append(self.finnhub_tools)
         return Agent(
             config=self.agents_config['researcher'], # type: ignore[index]
-            llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
+            llm=self.selected_llm_type,
             tools=researcher_tools,
             verbose=True
         )
@@ -51,7 +51,7 @@ class StockAnalyser():
             reporter_tools.append(self.finnhub_tools)
         return Agent(
             config=self.agents_config['reporter'], # type: ignore[index]
-            llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
+            llm=self.selected_llm_type,
             tools=reporter_tools,
             verbose=True
         )
@@ -63,7 +63,7 @@ class StockAnalyser():
             technical_analyst_tools.append(self.finnhub_tools)
         return Agent(
             config=self.agents_config['technical_analyst'], # type: ignore[index]
-            llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # Technical analyst will use the selected LLM
+            llm=self.selected_llm_type,
             tools=technical_analyst_tools,
             verbose=True
         )
@@ -75,7 +75,7 @@ class StockAnalyser():
             fundamental_analyst_tools.append(self.finnhub_tools)
         return Agent(
             config=self.agents_config['fundamental_analyst'], # type: ignore[index]
-            llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
+            llm=self.selected_llm_type,
             tools=fundamental_analyst_tools,
             verbose=True
         )
@@ -87,7 +87,7 @@ class StockAnalyser():
             sentiment_analyst_tools.append(self.finnhub_tools)
         return Agent(
             config=self.agents_config['sentiment_analyst'], # type: ignore[index]
-            llm=self.agents_config['llm_configs'][self.selected_llm_type]['llm'], # type: ignore[index]
+            llm=self.selected_llm_type,
             tools=sentiment_analyst_tools,
             verbose=True
         )
