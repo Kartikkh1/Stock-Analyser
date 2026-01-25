@@ -1,6 +1,8 @@
 import os
+import re
 from typing import Any
 import finnhub
+from finnhub.exceptions import FinnhubAPIException
 from crewai.tools import tool
 from stock_analyser.utils.logger import logger
 
@@ -16,27 +18,72 @@ def _get_finnhub_client() -> finnhub.Client | None:
 def _no_key_error() -> dict[str, Any]:
     return {
         "error": "FINNHUB_API_KEY not set. DO NOT retry this tool.",
-        "action": "Skip this data source and proceed with other available information."
+        "action": "Skip this data source and proceed with other available information.",
+        "retryable": False,
+        "error_type": "missing_api_key",
     }
+
+
+def _extract_status_code(e: Exception) -> int | None:
+    if isinstance(e, FinnhubAPIException):
+        status_code = getattr(e, "status_code", None)
+        if status_code is not None:
+            try:
+                return int(status_code)
+            except (TypeError, ValueError):
+                return None
+    match = re.search(r"status_code:\s*(\d+)", str(e))
+    if match:
+        return int(match.group(1))
+    return None
 
 
 def _handle_error(tool_name: str, symbol: str, e: Exception) -> dict[str, Any]:
     """Return LLM-friendly error with clear instruction not to retry."""
     error_str = str(e)
-    
-    # 403 = access denied (premium feature or invalid permissions)
-    if "403" in error_str:
+    status_code = _extract_status_code(e)
+
+    # 401/403 = access denied (premium feature or invalid permissions)
+    if status_code in {401, 403}:
         return {
             "error": f"Access denied for {tool_name}. This requires a Finnhub premium subscription.",
             "symbol": symbol,
-            "action": "DO NOT retry this tool. Skip this data and continue with other sources."
+            "status_code": status_code,
+            "retryable": False,
+            "error_type": "access_denied",
+            "action": "DO NOT retry this tool. Skip this data and continue with other sources.",
         }
-    
+
+    # 429 = rate limited
+    if status_code == 429:
+        return {
+            "error": f"{tool_name} rate-limited by Finnhub.",
+            "symbol": symbol,
+            "status_code": status_code,
+            "retryable": True,
+            "error_type": "rate_limited",
+            "action": "Retry later with backoff or use alternative data sources.",
+        }
+
+    # 5xx = server errors
+    if status_code and 500 <= status_code < 600:
+        return {
+            "error": f"{tool_name} unavailable due to Finnhub server error.",
+            "symbol": symbol,
+            "status_code": status_code,
+            "retryable": True,
+            "error_type": "server_error",
+            "action": "Retry later or use alternative data sources.",
+        }
+
     # Generic error
     return {
         "error": f"{tool_name} failed: {error_str}",
         "symbol": symbol,
-        "action": "DO NOT retry this tool with the same parameters. Try alternative data sources."
+        "status_code": status_code,
+        "retryable": False,
+        "error_type": "unknown_error",
+        "action": "DO NOT retry this tool with the same parameters. Try alternative data sources.",
     }
 
 
@@ -57,6 +104,9 @@ def get_real_time_quote(symbol: str) -> dict[str, Any]:
             "previousClose": q.get("pc"),
             "timestamp": q.get("t"),
         }
+    except FinnhubAPIException as e:
+        logger.warning(f"Finnhub quote error for {symbol}: {e}")
+        return _handle_error("get_real_time_quote", symbol, e)
     except Exception as e:
         logger.error(f"Finnhub quote error for {symbol}: {e}", exc_info=True)
         return _handle_error("get_real_time_quote", symbol, e)
@@ -75,9 +125,25 @@ def get_historical_prices(
         return _no_key_error()
     try:
         data = client.stock_candles(symbol, resolution, from_ts, to_ts)
+        status = data.get("s")
+        if status and status != "ok":
+            return {
+                "error": "No price data available",
+                "symbol": symbol,
+                "status": status,
+                "retryable": False,
+                "error_type": "no_data",
+                "action": "Skip historical prices and continue with other sources.",
+            }
         closes = data.get("c", [])
         if not closes:
-            return {"error": "No price data available"}
+            return {
+                "error": "No price data available",
+                "symbol": symbol,
+                "retryable": False,
+                "error_type": "no_data",
+                "action": "Skip historical prices and continue with other sources.",
+            }
         return {
             "symbol": symbol,
             "period": {"from": from_ts, "to": to_ts},
@@ -87,6 +153,9 @@ def get_historical_prices(
             "avg_close": round(sum(closes) / len(closes), 2),
             "last_close": round(closes[-1], 2),
         }
+    except FinnhubAPIException as e:
+        logger.warning(f"Finnhub stock_candles error for {symbol}: {e}")
+        return _handle_error("get_historical_prices", symbol, e)
     except Exception as e:
         logger.error(f"Finnhub stock_candles error for {symbol}: {e}", exc_info=True)
         return _handle_error("get_historical_prices", symbol, e)
@@ -119,6 +188,9 @@ def get_fundamental_data(symbol: str, metric_type: str = "all") -> dict[str, Any
         }
         # Remove None values to keep response clean
         return {k: v for k, v in key_metrics.items() if v is not None}
+    except FinnhubAPIException as e:
+        logger.warning(f"Finnhub fundamentals error for {symbol}: {e}")
+        return _handle_error("get_fundamental_data", symbol, e)
     except Exception as e:
         logger.error(f"Finnhub fundamentals error for {symbol}: {e}", exc_info=True)
         return _handle_error("get_fundamental_data", symbol, e)
@@ -143,6 +215,9 @@ def get_company_news(symbol: str, from_date: str, to_date: str) -> dict[str, Any
             for article in news[:5]
         ]
         return {"symbol": symbol, "count": len(news), "articles": summarized}
+    except FinnhubAPIException as e:
+        logger.warning(f"Finnhub company_news error for {symbol}: {e}")
+        return _handle_error("get_company_news", symbol, e)
     except Exception as e:
         logger.error(f"Finnhub company_news error for {symbol}: {e}", exc_info=True)
         return _handle_error("get_company_news", symbol, e)
@@ -172,6 +247,9 @@ def get_news_sentiment(symbol: str) -> dict[str, Any]:
             },
             "sectorAverageBullishPercent": data.get("sectorAverageBullishPercent"),
         }
+    except FinnhubAPIException as e:
+        logger.warning(f"Finnhub news_sentiment error for {symbol}: {e}")
+        return _handle_error("get_news_sentiment", symbol, e)
     except Exception as e:
         logger.error(f"Finnhub news_sentiment error for {symbol}: {e}", exc_info=True)
         return _handle_error("get_news_sentiment", symbol, e)
@@ -188,6 +266,9 @@ def analyst_rating(symbol: str) -> dict[str, Any]:
         # Limit to last 3 months of data
         recent = trends[:6] if trends else []
         return {"symbol": symbol, "recommendations": recent}
+    except FinnhubAPIException as e:
+        logger.warning(f"Finnhub recommendation_trends error for {symbol}: {e}")
+        return _handle_error("analyst_rating", symbol, e)
     except Exception as e:
         logger.error(f"Finnhub recommendation_trends error for {symbol}: {e}", exc_info=True)
         return _handle_error("analyst_rating", symbol, e)
