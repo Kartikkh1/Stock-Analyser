@@ -112,7 +112,6 @@ The system orchestrates several specialized AI agents:
 ## Things to do (good first contributions)
 
 - [ ] **Add caching for the ticker validation API** (avoid repeated Finnhub calls; cache positive/negative results with a short TTL).
-- [ ] **Fix the Anthropic model name** (currently returns a 404; update the model mapping / config so Anthropic requests succeed).
 - [ ] **Persist the UI list across refresh** (keep the user’s tickers / recent analyses after page reload; e.g., local storage or backend persistence).
 - [ ] **Improve UI design** (layout, typography, spacing, accessibility, and overall polish).
 - [ ] **Add interactive reporting & graphs** (visualize trends like price history, moving averages, volume, sentiment over time; make charts part of the report view).
