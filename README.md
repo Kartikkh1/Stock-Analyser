@@ -123,7 +123,7 @@ The system automatically maps LLM provider choices to specific models (configure
 | Provider   | Model                        | Description                    |
 |------------|------------------------------|--------------------------------|
 | OpenAI     | `gpt-4o`                     | Latest GPT-4 model             |
-| Anthropic  | `claude-3-5-sonnet-20240620` | Claude 3.5 Sonnet (June 2024)  |
+| Anthropic  | `claude-3-5-sonnet-20240620` | Claude Sonnet 4.5              |
 | Google     | `gemini-2.5-pro`             | Google Gemini 2.5 Pro          |
 
 **Note:** This is the single source of truth for LLM configuration. All models are specified in `backend/core/config.py`.
