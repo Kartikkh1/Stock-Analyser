@@ -12,12 +12,14 @@ reporter_task:
   description: >
     Review all the context you got from other agents. Your primary goal is to synthesize this information into a comprehensive, easy-to-understand stock analysis report for a non-expert audience. This means:
     - Explain all technical indicators (SMA, EMA, RSI, MACD, Bollinger Bands, Ichimoku Cloud, Fibonacci Retracements, ATR) in simple, clear language.
+    - Write for a general audience. Avoid jargon and buzzwords whenever possible; if you must use them, define them immediately in plain English.
+    - For each technical indicator, include a "Plain-English takeaway" that tells a non-expert what the indicator suggests and why it matters.
     - Focus on the practical implications and investment insights derived from these indicators, rather than just presenting raw data.
     - Structure the report logically with clear headings and a natural flow, avoiding jargon where possible or explaining it thoroughly.
     - Summarize key findings and recommendations in an accessible manner.
     Make sure the report is detailed and contains any and all relevant information.
   expected_output: >
-    A fully fledged report with the main topics, each with a full section of information. The report MUST be easy to read and understand for a general audience, with all complex financial terms and technical indicators clearly explained. The report MUST include relevant charts and graphs (e.g., historical prices, MACD, RSI) generated using the visualization tools to illustrate technical analysis findings. Charts should be embedded as base64 encoded images within the markdown report.
+    A fully fledged report with the main topics, each with a full section of information. The report MUST be easy to read and understand for a general audience, with all complex financial terms and technical indicators clearly explained. The report MUST include relevant charts and graphs (at least historical prices, MACD, and RSI) generated using the visualization tools (plot_stock_prices, plot_macd, plot_rsi) to illustrate technical analysis findings. Charts should be embedded as base64 encoded images within the markdown report using the format: ![Short caption](data:image/png;base64,ENCODED_STRING). Add a 1-2 sentence plain-English caption explaining what the reader should notice.
     Formatted as markdown without '```'
   context:
     - researcher_task
@@ -66,6 +68,7 @@ technical_analyst_task:
     key technical indicators such as Moving Averages (SMA, EMA), Relative Strength Index (RSI),
     Moving Average Convergence Divergence (MACD), Bollinger Bands, Ichimoku Cloud, Fibonacci Retracements, and Average True Range (ATR).
     Interpret these indicators to identify trends, momentum, and potential buy/sell signals.
+    Explain each indicator in plain English, avoiding buzzwords and defining any jargon in the same sentence.
     Focus on providing actionable insights based on the technical patterns observed.
     The current year is {current_year}.
   expected_output: >
@@ -75,6 +78,7 @@ technical_analyst_task:
     - Identification of key support and resistance levels.
     - Potential bullish or bearish signals.
     - A summary of overall technical outlook and recommendations.
+    - A plain-English takeaway for each indicator (1-2 sentences) that a non-expert can understand.
     If historical prices or any technical indicator calculation is unavailable from tools, omit those specific details and focus on other available analysis to provide comprehensive insights.
     Formatted as markdown without '```'
   agent: technical_analyst
