@@ -1,2 +1,2 @@
 from .finnhub_tools import get_finnhub_tools
-from .technical_analysis_tools import TechnicalAnalysisTools
+from .technical_analysis_tools import get_technical_analysis_tools

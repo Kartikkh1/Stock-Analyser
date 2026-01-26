@@ -1,7 +1,7 @@
 researcher_task:
   description: >
-    Conduct broad market research for ticker symbol {name} using the assigned LLM's capabilities and web search to uncover general news, developments,
-    analyst ratings, future price predictions, potential risks, and insights into major shareholders, institutional investors, and insiders.
+    Conduct broad market research for ticker symbol {name}. Use Finnhub data sources first; if Finnhub returns an error, use Alpha Vantage; if Alpha Vantage is unavailable or errors, use web search to uncover
+    general news, developments, analyst ratings, future price predictions, potential risks, and insights into major shareholders, institutional investors, and insiders.
     This task focuses on gathering qualitative information and market context that complements the detailed quantitative analyses provided by other specialized agents.
     The current year is {current_year}.
   expected_output: >
@@ -14,12 +14,14 @@ reporter_task:
     - Explain all technical indicators (SMA, EMA, RSI, MACD, Bollinger Bands, Ichimoku Cloud, Fibonacci Retracements, ATR) in simple, clear language.
     - Write for a general audience. Avoid jargon and buzzwords whenever possible; if you must use them, define them immediately in plain English.
     - For each technical indicator, include a "Plain-English takeaway" that tells a non-expert what the indicator suggests and why it matters.
+    - Include a short "Quick Take" section near the top with 5 bullets (15 words max each).
     - Focus on the practical implications and investment insights derived from these indicators, rather than just presenting raw data.
     - Structure the report logically with clear headings and a natural flow, avoiding jargon where possible or explaining it thoroughly.
     - Summarize key findings and recommendations in an accessible manner.
+    - Generate charts using get_historical_candles (daily, last 180 days) first; if Finnhub errors, use get_av_historical_candles; if that fails, use web search to reconstruct price data, then use the visualization tools (plot_stock_prices, plot_macd, plot_rsi).
     Make sure the report is detailed and contains any and all relevant information.
   expected_output: >
-    A fully fledged report with the main topics, each with a full section of information. The report MUST be easy to read and understand for a general audience, with all complex financial terms and technical indicators clearly explained. The report MUST include relevant charts and graphs (at least historical prices, MACD, and RSI) generated using the visualization tools (plot_stock_prices, plot_macd, plot_rsi) to illustrate technical analysis findings. Charts should be embedded as base64 encoded images within the markdown report using the format: ![Short caption](data:image/png;base64,ENCODED_STRING). Add a 1-2 sentence plain-English caption explaining what the reader should notice.
+    A fully fledged report with the main topics, each with a full section of information. The report MUST be easy to read and understand for a general audience, with all complex financial terms and technical indicators clearly explained. The report MUST include a "Quick Take" section, a "Key Risks" section (3-5 bullets), and relevant charts/graphs (at least historical prices, MACD, and RSI) generated using the visualization tools (plot_stock_prices, plot_macd, plot_rsi). Charts should be embedded as base64 encoded images within the markdown report using the format: ![Short caption](data:image/png;base64,ENCODED_STRING). Add a 1-2 sentence plain-English caption explaining what the reader should notice.
     Formatted as markdown without '```'
   context:
     - researcher_task
@@ -35,6 +37,7 @@ chart_pattern_analysis_task:
     Analyze historical price charts for {name} to identify significant chart patterns
     such as support and resistance levels, head and shoulders, double tops/bottoms,
     and triangles. Interpret these patterns for potential future price movements and provide insights.
+    Use Finnhub historical prices first; if Finnhub errors, use Alpha Vantage (get_av_historical_candles); if Alpha Vantage errors, use web search.
     The current year is {current_year}.
   expected_output: >
     A detailed analysis of identified chart patterns for {name}, including descriptions of patterns,
@@ -47,7 +50,8 @@ fundamental_analysis_task:
   description: >
     Perform a deep fundamental analysis for ticker symbol {name}.
     Retrieve comprehensive financial statements (income statement, balance sheet, cash flow statement) for the last 2 years
-    using the Finnhub API. Calculate and interpret key financial ratios such as P/E ratio, EPS, Debt-to-Equity,
+    using the Finnhub API first; if Finnhub errors, use Alpha Vantage (get_av_company_overview, get_av_financial_statements); if Alpha Vantage errors, use web search.
+    Calculate and interpret key financial ratios such as P/E ratio, EPS, Debt-to-Equity,
     Current Ratio, and Return on Equity. Provide an overall assessment of the company's financial health and intrinsic value.
     The current year is {current_year}.
   expected_output: >
@@ -55,7 +59,7 @@ fundamental_analysis_task:
     - Summaries of key financial statements.
     - Calculated and interpreted financial ratios.
     - An overall assessment of financial health, intrinsic value, and long-term investment potential.
-    If Finnhub data for financial statements or metrics is unavailable from tools, omit the specific unavailable details and provide a general qualitative assessment if sufficient information is available from other sources.
+    If Finnhub data for financial statements or metrics is unavailable from tools, try Alpha Vantage; if still unavailable, omit the specific details and provide a general qualitative assessment if sufficient information is available from other sources.
     Formatted as markdown without '```'
   context:
     - researcher_task
@@ -64,7 +68,7 @@ fundamental_analysis_task:
 technical_analyst_task:
   description: >
     Perform a comprehensive technical analysis for the ticker symbol {name}.
-    If Finnhub data is available, use it to retrieve historical stock prices, else use web search to find historical prices and calculate
+    Use Finnhub to retrieve historical stock prices first; if Finnhub returns an error, use Alpha Vantage (get_av_historical_candles); if Alpha Vantage is unavailable or errors, use web search to find historical prices and calculate
     key technical indicators such as Moving Averages (SMA, EMA), Relative Strength Index (RSI),
     Moving Average Convergence Divergence (MACD), Bollinger Bands, Ichimoku Cloud, Fibonacci Retracements, and Average True Range (ATR).
     Interpret these indicators to identify trends, momentum, and potential buy/sell signals.
@@ -76,7 +80,7 @@ technical_analyst_task:
     - Current price and recent price movements.
     - Calculated values and interpretations for SMA, EMA, RSI, MACD, Bollinger Bands, Ichimoku Cloud components, Fibonacci Retracement levels, and ATR.
     - Identification of key support and resistance levels.
-    - Potential bullish or bearish signals.
+    - Potential upward or downward signals (define any trading terms used).
     - A summary of overall technical outlook and recommendations.
     - A plain-English takeaway for each indicator (1-2 sentences) that a non-expert can understand.
     If historical prices or any technical indicator calculation is unavailable from tools, omit those specific details and focus on other available analysis to provide comprehensive insights.
@@ -85,12 +89,13 @@ technical_analyst_task:
 
 sentiment_analysis_task:
   description: >
-    Utilize Finnhub's news and sentiment data capabilities, and conduct broader web searches to gauge public and market sentiment towards the ticker symbol {name}.
-    Gather news sentiment data using the Finnhub API and also search for additional news articles, social media discussions, and analyst opinions to gain a comprehensive understanding of the sentiment.
+    Use Finnhub's news and sentiment data first to gauge public and market sentiment towards the ticker symbol {name}. If Finnhub returns an error, use Alpha Vantage (get_av_news_sentiment); if Alpha Vantage is unavailable or errors, use web search.
+    Gather news sentiment data using the Finnhub API and supplement it with additional news articles, social media discussions, and analyst opinions as needed.
+    If Finnhub data is unavailable or errors, use Alpha Vantage; if Alpha Vantage is unavailable or errors, use web search as the primary source without mentioning any failures.
     Integrate all gathered sentiment data into the analysis report, identifying key trends and their potential impact.
     The current year is {current_year}.
   expected_output: >
     A concise summary of the news sentiment for {name}, including overall sentiment scores, any notable positive or negative news trends, and their potential impact on the stock.
-    If news sentiment data is unavailable from tools, rely more heavily on web search results for sentiment analysis and present findings without mentioning the unavailability of the primary source.
+    If news sentiment data is unavailable from tools after trying Finnhub and Alpha Vantage, rely more heavily on web search results for sentiment analysis and present findings without mentioning the unavailability of the primary source.
     Formatted as markdown without '```'
   agent: sentiment_analyst

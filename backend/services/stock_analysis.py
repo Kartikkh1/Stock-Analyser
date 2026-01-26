@@ -117,7 +117,8 @@ async def run_stock_analysis(
             report_path = None  # No file saved in test mode
         else:
             # In production mode, read the generated report file
-            report_path = f'output/{stock_ticker}_{llm_model}_report.md'
+            safe_model = llm_model.replace("/", "_")
+            report_path = f'output/{stock_ticker}_{safe_model}_report.md'
             try:
                 with open(report_path, 'r') as f:
                     report_content = f.read()

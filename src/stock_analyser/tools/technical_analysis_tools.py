@@ -1,178 +1,238 @@
+from typing import Any
+
 import pandas as pd
-from crewai.tools import BaseTool
 import talib
+from crewai.tools import tool
+
 from stock_analyser.utils.logger import logger
 
-class TechnicalAnalysisTools(BaseTool):
-    name: str = "Technical Analysis Tools"
-    description: str = "A collection of tools for calculating various technical indicators."
 
-    def _run(self, tool_name: str, **kwargs):
-        logger.info(f"Executing Technical Analysis tool: {tool_name} with args: {kwargs}")
-        if tool_name == "calculate_ichimoku_cloud":
-            return self._calculate_ichimoku_cloud(**kwargs)
-        elif tool_name == "calculate_fibonacci_retracements":
-            return self._calculate_fibonacci_retracements(**kwargs)
-        elif tool_name == "calculate_moving_averages":
-            return self._calculate_moving_averages(**kwargs)
-        elif tool_name == "calculate_rsi":
-            return self._calculate_rsi(**kwargs)
-        elif tool_name == "calculate_macd":
-            return self._calculate_macd(**kwargs)
-        elif tool_name == "calculate_bollinger_bands":
-            return self._calculate_bollinger_bands(**kwargs)
-        elif tool_name == "calculate_atr":
-            return self._calculate_atr(**kwargs)
+def _to_dataframe(data: Any) -> pd.DataFrame:
+    if isinstance(data, pd.DataFrame):
+        df = data.copy()
+    elif isinstance(data, dict):
+        if "candles" in data:
+            df = pd.DataFrame(data.get("candles", []))
         else:
-            logger.warning(f"Unknown Technical Analysis tool name: {tool_name}")
-            raise ValueError(f"Unknown tool name: {tool_name}")
+            df = pd.DataFrame(data)
+    else:
+        df = pd.DataFrame(data)
 
-    def _calculate_ichimoku_cloud(self, df: pd.DataFrame):
-        """
-        Calculates the Ichimoku Cloud for a given DataFrame of historical prices.
-        The DataFrame should have 'high', 'low', 'close' columns.
-        """
-        logger.debug("Calculating Ichimoku Cloud.")
-        try:
-            # Tenkan-sen (Conversion Line): (9-period high + 9-period low) / 2
-            high_9 = df['high'].rolling(window=9).max()
-            low_9 = df['low'].rolling(window=9).min()
-            df['tenkan_sen'] = (high_9 + low_9) / 2
+    if df.empty:
+        return df
 
-            # Kijun-sen (Base Line): (26-period high + 26-period low) / 2
-            high_26 = df['high'].rolling(window=26).max()
-            low_26 = df['low'].rolling(window=26).min()
-            df['kijun_sen'] = (high_26 + low_26) / 2
+    rename_map: dict[str, str] = {}
+    for col in df.columns:
+        lower = str(col).lower()
+        if lower == "close":
+            rename_map[col] = "close"
+        elif lower == "high":
+            rename_map[col] = "high"
+        elif lower == "low":
+            rename_map[col] = "low"
+        elif lower == "open":
+            rename_map[col] = "open"
+        elif lower == "date":
+            rename_map[col] = "date"
+    if rename_map:
+        df = df.rename(columns=rename_map)
+    return df
 
-            # Senkou Span A (Leading Span A): (Conversion Line + Base Line) / 2 plotted 26 periods ahead
-            df['senkou_span_a'] = ((df['tenkan_sen'] + df['kijun_sen']) / 2).shift(26)
 
-            # Senkou Span B (Leading Span B): (52-period high + 52-period low) / 2 plotted 26 periods ahead
-            high_52 = df['high'].rolling(window=52).max()
-            low_52 = df['low'].rolling(window=52).min()
-            df['senkou_span_b'] = ((high_52 + low_52) / 2).shift(26)
+@tool("calculate_ichimoku_cloud")
+def calculate_ichimoku_cloud(df: Any) -> dict[str, Any] | list[dict[str, Any]]:
+    """
+    Calculates the Ichimoku Cloud for a given DataFrame of historical prices.
+    The data should have 'high', 'low', 'close' columns.
+    """
+    logger.debug("Calculating Ichimoku Cloud.")
+    try:
+        data = _to_dataframe(df)
+        if data.empty:
+            return {"error": "Missing data for Ichimoku Cloud calculation: empty dataset"}
+        if not {"high", "low", "close"}.issubset(data.columns):
+            return {"error": "Missing data for Ichimoku Cloud calculation: requires high, low, close"}
 
-            # Chikou Span (Lagging Span): Close plotted 26 periods behind
-            df['chikou_span'] = df['close'].shift(-26)
+        high_9 = data["high"].rolling(window=9).max()
+        low_9 = data["low"].rolling(window=9).min()
+        data["tenkan_sen"] = (high_9 + low_9) / 2
 
-            logger.debug("Ichimoku Cloud calculated successfully.")
-            return df[['tenkan_sen', 'kijun_sen', 'senkou_span_a', 'senkou_span_b', 'chikou_span']].to_dict('records')
-        except KeyError as e:
-            logger.error(f"Error in Ichimoku Cloud calculation: Missing column {e}. Ensure 'high', 'low', 'close' columns exist.", exc_info=True)
-            return {"error": f"Missing data for Ichimoku Cloud calculation: {e}"}
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during Ichimoku Cloud calculation: {e}", exc_info=True)
-            return {"error": str(e)}
+        high_26 = data["high"].rolling(window=26).max()
+        low_26 = data["low"].rolling(window=26).min()
+        data["kijun_sen"] = (high_26 + low_26) / 2
 
-    def _calculate_fibonacci_retracements(self, high: float, low: float):
-        """
-        Calculates Fibonacci Retracement levels given a high and a low point.
-        """
-        logger.debug(f"Calculating Fibonacci Retracements for high: {high}, low: {low}")
-        try:
-            diff = high - low
-            levels = {
-                "0%": high,
-                "23.6%": high - 0.236 * diff,
-                "38.2%": high - 0.382 * diff,
-                "50%": high - 0.5 * diff,
-                "61.8%": high - 0.618 * diff,
-                "100%": low,
-            }
-            logger.debug("Fibonacci Retracements calculated successfully.")
-            return levels
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during Fibonacci Retracements calculation: {e}", exc_info=True)
-            return {"error": str(e)}
+        data["senkou_span_a"] = ((data["tenkan_sen"] + data["kijun_sen"]) / 2).shift(26)
 
-    def _calculate_moving_averages(self, df: pd.DataFrame, timeperiod: int = 20):
-        """
-        Calculates Simple Moving Average (SMA) and Exponential Moving Average (EMA).
-        The DataFrame should have a 'close' column.
-        """
-        logger.debug(f"Calculating Moving Averages with timeperiod: {timeperiod}")
-        try:
-            df['SMA'] = talib.SMA(df['close'], timeperiod=timeperiod)
-            df['EMA'] = talib.EMA(df['close'], timeperiod=timeperiod)
-            logger.debug("Moving Averages calculated successfully.")
-            return df[['SMA', 'EMA']].to_dict('records')
-        except KeyError as e:
-            logger.error(f"Error in Moving Averages calculation: Missing column {e}. Ensure 'close' column exists.", exc_info=True)
-            return {"error": f"Missing data for Moving Averages calculation: {e}"}
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during Moving Averages calculation: {e}", exc_info=True)
-            return {"error": str(e)}
+        high_52 = data["high"].rolling(window=52).max()
+        low_52 = data["low"].rolling(window=52).min()
+        data["senkou_span_b"] = ((high_52 + low_52) / 2).shift(26)
 
-    def _calculate_rsi(self, df: pd.DataFrame, timeperiod: int = 14):
-        """
-        Calculates the Relative Strength Index (RSI).
-        The DataFrame should have a 'close' column.
-        """
-        logger.debug(f"Calculating RSI with timeperiod: {timeperiod}")
-        try:
-            df['RSI'] = talib.RSI(df['close'], timeperiod=timeperiod)
-            logger.debug("RSI calculated successfully.")
-            return df[['RSI']].to_dict('records')
-        except KeyError as e:
-            logger.error(f"Error in RSI calculation: Missing column {e}. Ensure 'close' column exists.", exc_info=True)
-            return {"error": f"Missing data for RSI calculation: {e}"}
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during RSI calculation: {e}", exc_info=True)
-            return {"error": str(e)}
+        data["chikou_span"] = data["close"].shift(-26)
 
-    def _calculate_macd(self, df: pd.DataFrame, fastperiod: int = 12, slowperiod: int = 26, signalperiod: int = 9):
-        """
-        Calculates the Moving Average Convergence Divergence (MACD).
-        The DataFrame should have a 'close' column.
-        """
-        logger.debug(f"Calculating MACD with fastperiod: {fastperiod}, slowperiod: {slowperiod}, signalperiod: {signalperiod}")
-        try:
-            macd, macdsignal, macdhist = talib.MACD(df['close'], fastperiod=fastperiod, slowperiod=slowperiod, signalperiod=signalperiod)
-            df['MACD'] = macd
-            df['MACD_Signal'] = macdsignal
-            df['MACD_Hist'] = macdhist
-            logger.debug("MACD calculated successfully.")
-            return df[['MACD', 'MACD_Signal', 'MACD_Hist']].to_dict('records')
-        except KeyError as e:
-            logger.error(f"Error in MACD calculation: Missing column {e}. Ensure 'close' column exists.", exc_info=True)
-            return {"error": f"Missing data for MACD calculation: {e}"}
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during MACD calculation: {e}", exc_info=True)
-            return {"error": str(e)}
+        logger.debug("Ichimoku Cloud calculated successfully.")
+        return data[["tenkan_sen", "kijun_sen", "senkou_span_a", "senkou_span_b", "chikou_span"]].to_dict("records")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during Ichimoku Cloud calculation: {e}", exc_info=True)
+        return {"error": str(e)}
 
-    def _calculate_bollinger_bands(self, df: pd.DataFrame, timeperiod: int = 20, nbdevup: int = 2, nbdevdn: int = 2):
-        """
-        Calculates Bollinger Bands.
-        The DataFrame should have a 'close' column.
-        """
-        logger.debug(f"Calculating Bollinger Bands with timeperiod: {timeperiod}")
-        try:
-            upper, middle, lower = talib.BBANDS(df['close'], timeperiod=timeperiod, nbdevup=nbdevup, nbdevdn=nbdevdn)
-            df['Bollinger_Upper'] = upper
-            df['Bollinger_Middle'] = middle
-            df['Bollinger_Lower'] = lower
-            logger.debug("Bollinger Bands calculated successfully.")
-            return df[['Bollinger_Upper', 'Bollinger_Middle', 'Bollinger_Lower']].to_dict('records')
-        except KeyError as e:
-            logger.error(f"Error in Bollinger Bands calculation: Missing column {e}. Ensure 'close' column exists.", exc_info=True)
-            return {"error": f"Missing data for Bollinger Bands calculation: {e}"}
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during Bollinger Bands calculation: {e}", exc_info=True)
-            return {"error": str(e)}
 
-    def _calculate_atr(self, df: pd.DataFrame, timeperiod: int = 14):
-        """
-        Calculates the Average True Range (ATR).
-        The DataFrame should have 'high', 'low', 'close' columns.
-        """
-        logger.debug(f"Calculating ATR with timeperiod: {timeperiod}")
-        try:
-            df['ATR'] = talib.ATR(df['high'], df['low'], df['close'], timeperiod=timeperiod)
-            logger.debug("ATR calculated successfully.")
-            return df[['ATR']].to_dict('records')
-        except KeyError as e:
-            logger.error(f"Error in ATR calculation: Missing column {e}. Ensure 'high', 'low', 'close' columns exist.", exc_info=True)
-            return {"error": f"Missing data for ATR calculation: {e}"}
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during ATR calculation: {e}", exc_info=True)
-            return {"error": str(e)}
+@tool("calculate_fibonacci_retracements")
+def calculate_fibonacci_retracements(high: float, low: float) -> dict[str, Any]:
+    """
+    Calculates Fibonacci Retracement levels given a high and a low point.
+    """
+    logger.debug(f"Calculating Fibonacci Retracements for high: {high}, low: {low}")
+    try:
+        diff = high - low
+        levels = {
+            "0%": high,
+            "23.6%": high - 0.236 * diff,
+            "38.2%": high - 0.382 * diff,
+            "50%": high - 0.5 * diff,
+            "61.8%": high - 0.618 * diff,
+            "100%": low,
+        }
+        logger.debug("Fibonacci Retracements calculated successfully.")
+        return levels
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during Fibonacci Retracements calculation: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@tool("calculate_moving_averages")
+def calculate_moving_averages(df: Any, timeperiod: int = 20) -> dict[str, Any] | list[dict[str, Any]]:
+    """
+    Calculates Simple Moving Average (SMA) and Exponential Moving Average (EMA).
+    The data should have a 'close' column.
+    """
+    logger.debug(f"Calculating Moving Averages with timeperiod: {timeperiod}")
+    try:
+        data = _to_dataframe(df)
+        if data.empty:
+            return {"error": "Missing data for Moving Averages calculation: empty dataset"}
+        if "close" not in data.columns:
+            return {"error": "Missing data for Moving Averages calculation: requires close"}
+
+        data["SMA"] = talib.SMA(data["close"], timeperiod=timeperiod)
+        data["EMA"] = talib.EMA(data["close"], timeperiod=timeperiod)
+        logger.debug("Moving Averages calculated successfully.")
+        return data[["SMA", "EMA"]].to_dict("records")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during Moving Averages calculation: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@tool("calculate_rsi")
+def calculate_rsi(df: Any, timeperiod: int = 14) -> dict[str, Any] | list[dict[str, Any]]:
+    """
+    Calculates the Relative Strength Index (RSI).
+    The data should have a 'close' column.
+    """
+    logger.debug(f"Calculating RSI with timeperiod: {timeperiod}")
+    try:
+        data = _to_dataframe(df)
+        if data.empty:
+            return {"error": "Missing data for RSI calculation: empty dataset"}
+        if "close" not in data.columns:
+            return {"error": "Missing data for RSI calculation: requires close"}
+
+        data["RSI"] = talib.RSI(data["close"], timeperiod=timeperiod)
+        logger.debug("RSI calculated successfully.")
+        return data[["RSI"]].to_dict("records")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during RSI calculation: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@tool("calculate_macd")
+def calculate_macd(
+    df: Any, fastperiod: int = 12, slowperiod: int = 26, signalperiod: int = 9
+) -> dict[str, Any] | list[dict[str, Any]]:
+    """
+    Calculates the Moving Average Convergence Divergence (MACD).
+    The data should have a 'close' column.
+    """
+    logger.debug(
+        f"Calculating MACD with fastperiod: {fastperiod}, slowperiod: {slowperiod}, signalperiod: {signalperiod}"
+    )
+    try:
+        data = _to_dataframe(df)
+        if data.empty:
+            return {"error": "Missing data for MACD calculation: empty dataset"}
+        if "close" not in data.columns:
+            return {"error": "Missing data for MACD calculation: requires close"}
+
+        macd, macdsignal, macdhist = talib.MACD(
+            data["close"], fastperiod=fastperiod, slowperiod=slowperiod, signalperiod=signalperiod
+        )
+        data["MACD"] = macd
+        data["MACD_Signal"] = macdsignal
+        data["MACD_Hist"] = macdhist
+        logger.debug("MACD calculated successfully.")
+        return data[["MACD", "MACD_Signal", "MACD_Hist"]].to_dict("records")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during MACD calculation: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@tool("calculate_bollinger_bands")
+def calculate_bollinger_bands(
+    df: Any, timeperiod: int = 20, nbdevup: int = 2, nbdevdn: int = 2
+) -> dict[str, Any] | list[dict[str, Any]]:
+    """
+    Calculates Bollinger Bands.
+    The data should have a 'close' column.
+    """
+    logger.debug(f"Calculating Bollinger Bands with timeperiod: {timeperiod}")
+    try:
+        data = _to_dataframe(df)
+        if data.empty:
+            return {"error": "Missing data for Bollinger Bands calculation: empty dataset"}
+        if "close" not in data.columns:
+            return {"error": "Missing data for Bollinger Bands calculation: requires close"}
+
+        upper, middle, lower = talib.BBANDS(
+            data["close"], timeperiod=timeperiod, nbdevup=nbdevup, nbdevdn=nbdevdn
+        )
+        data["Bollinger_Upper"] = upper
+        data["Bollinger_Middle"] = middle
+        data["Bollinger_Lower"] = lower
+        logger.debug("Bollinger Bands calculated successfully.")
+        return data[["Bollinger_Upper", "Bollinger_Middle", "Bollinger_Lower"]].to_dict("records")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during Bollinger Bands calculation: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@tool("calculate_atr")
+def calculate_atr(df: Any, timeperiod: int = 14) -> dict[str, Any] | list[dict[str, Any]]:
+    """
+    Calculates the Average True Range (ATR).
+    The data should have 'high', 'low', 'close' columns.
+    """
+    logger.debug(f"Calculating ATR with timeperiod: {timeperiod}")
+    try:
+        data = _to_dataframe(df)
+        if data.empty:
+            return {"error": "Missing data for ATR calculation: empty dataset"}
+        if not {"high", "low", "close"}.issubset(data.columns):
+            return {"error": "Missing data for ATR calculation: requires high, low, close"}
+
+        data["ATR"] = talib.ATR(data["high"], data["low"], data["close"], timeperiod=timeperiod)
+        logger.debug("ATR calculated successfully.")
+        return data[["ATR"]].to_dict("records")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during ATR calculation: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+def get_technical_analysis_tools() -> list[Any]:
+    return [
+        calculate_ichimoku_cloud,
+        calculate_fibonacci_retracements,
+        calculate_moving_averages,
+        calculate_rsi,
+        calculate_macd,
+        calculate_bollinger_bands,
+        calculate_atr,
+    ]

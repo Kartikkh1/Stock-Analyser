@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime, timedelta
 from typing import Any
 import finnhub
 from finnhub.exceptions import FinnhubAPIException
@@ -161,6 +162,61 @@ def get_historical_prices(
         return _handle_error("get_historical_prices", symbol, e)
 
 
+@tool("get_historical_candles")
+def get_historical_candles(
+    symbol: str,
+    resolution: str = "D",
+    days: int = 180
+) -> dict[str, Any]:
+    """Get historical candle data (Date, Close) for the last N days."""
+    client = _get_finnhub_client()
+    if not client:
+        return _no_key_error()
+    try:
+        to_ts = int(datetime.utcnow().timestamp())
+        from_ts = int((datetime.utcnow() - timedelta(days=days)).timestamp())
+        data = client.stock_candles(symbol, resolution, from_ts, to_ts)
+        status = data.get("s")
+        if status and status != "ok":
+            return {
+                "error": "No candle data available",
+                "symbol": symbol,
+                "status": status,
+                "retryable": False,
+                "error_type": "no_data",
+                "action": "Skip candle data and continue with other sources.",
+            }
+        timestamps = data.get("t", [])
+        closes = data.get("c", [])
+        if not timestamps or not closes:
+            return {
+                "error": "No candle data available",
+                "symbol": symbol,
+                "retryable": False,
+                "error_type": "no_data",
+                "action": "Skip candle data and continue with other sources.",
+            }
+        candles = [
+            {
+                "Date": datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d"),
+                "Close": close,
+            }
+            for ts, close in zip(timestamps, closes)
+        ]
+        return {
+            "symbol": symbol,
+            "resolution": resolution,
+            "count": len(candles),
+            "candles": candles,
+        }
+    except FinnhubAPIException as e:
+        logger.warning(f"Finnhub stock_candles error for {symbol}: {e}")
+        return _handle_error("get_historical_candles", symbol, e)
+    except Exception as e:
+        logger.error(f"Finnhub stock_candles error for {symbol}: {e}", exc_info=True)
+        return _handle_error("get_historical_candles", symbol, e)
+
+
 @tool("get_fundamental_data")
 def get_fundamental_data(symbol: str, metric_type: str = "all") -> dict[str, Any]:
     """Get key financial metrics for `symbol` (PE, EPS, market cap, 52-week range, etc.)."""
@@ -281,6 +337,7 @@ def get_finnhub_tools() -> list[Any]:
     return [
         get_real_time_quote,
         get_historical_prices,
+        get_historical_candles,
         get_fundamental_data,
         get_company_news,
         get_news_sentiment,
